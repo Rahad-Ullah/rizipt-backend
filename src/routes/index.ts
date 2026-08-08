@@ -19,6 +19,7 @@ import { faqRoutes } from '../app/modules/faq/faq.route';
 import { privacySettingRoutes } from '../app/modules/privacySetting/privacySetting.route';
 import { analyticsRoutes } from '../app/modules/analytics/analytics.route';
 import { merchantRoutes } from '../app/modules/merchant/merchant.route';
+import { couponRoutes } from '../app/modules/coupon/coupon.route';
 const router = express.Router();
 
 const apiRoutes: { path: string; route: any }[] = [
@@ -39,8 +40,8 @@ const apiRoutes: { path: string; route: any }[] = [
     route: AuthRoutes,
   },
   {
-    path: '/appointments',
-    route: appointmentRoutes,
+    path: '/coupons',
+    route: couponRoutes,
   },
   {
     path: '/wishlists',

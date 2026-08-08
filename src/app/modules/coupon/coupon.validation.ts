@@ -12,9 +12,12 @@ const createCouponSchema = z.object({
       .min(0, 'Discount percentage must be at least 0')
       .max(100, 'Discount percentage cannot exceed 100'),
     image: z.string().url().min(1, 'Image URL is required'),
-    expiresAt: z.date().refine(date => date > new Date(), {
-      message: 'Expiration date must be in the future',
-    }),
+    expiresAt: z
+      .string()
+      .datetime()
+      .refine(date => new Date(date) > new Date(), {
+        message: 'Expiration date must be in the future',
+      }),
   }),
 });
 
@@ -34,8 +37,9 @@ const updateCouponSchema = z.object({
       .optional(),
     image: z.string().url().min(1, 'Image URL is required').optional(),
     expiresAt: z
-      .date()
-      .refine(date => date > new Date(), {
+      .string()
+      .datetime()
+      .refine(date => new Date(date) > new Date(), {
         message: 'Expiration date must be in the future',
       })
       .optional(),
