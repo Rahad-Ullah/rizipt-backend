@@ -52,7 +52,7 @@ const updateUserZodSchema = z.object({
         })
         .optional(),
       isNotificationEnabled: z.boolean().optional(),
-      image: z.string().optional(),
+      image: z.string().url().optional(),
     })
     .strict(),
 });

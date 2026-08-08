@@ -194,115 +194,13 @@ const deleteSingleUserFromDB = async (
   return result;
 };
 
-// ------------ get all care providers ------------
-const getAllCareProvidersFromDB = async (
-  userId: string,
-  query: Record<string, unknown>,
-) => {
-  const filter: any = {
-    role: UserRole.Merchant,
-    isDeleted: false,
-    status: UserStatus.Active,
-  };
-
-  // 1. Filter by location radius using $near if coordinates are provided
-  const lat = query.lat ? parseFloat(query.lat as string) : null;
-  const lng = query.lng ? parseFloat(query.lng as string) : null;
-  const radiusKm = query.radius ? Number(query.radius) : 200;
-  if (lat !== null && lng !== null) {
-    const EARTH_RADIUS_KM = 6378.1; // Equatorial radius of earth
-    const radiusInRadians = radiusKm / EARTH_RADIUS_KM;
-
-    filter.location = {
-      $geoWithin: {
-        $centerSphere: [[lng, lat], radiusInRadians],
-      },
-    };
-  }
-
-  // 2. Pre-filter care provider criteria
-  const careProviderFilter: FilterQuery<ICareProvider> = {};
-  if (query.careType) {
-    careProviderFilter.careType = query.careType as string;
-  }
-  if (query.specialty) {
-    careProviderFilter.specialty = query.specialty as string;
-  }
-  if (query.experienceYears) {
-    careProviderFilter.experienceYears = {
-      $gte: Number(query.experienceYears),
-    };
-  }
-
-  if (Object.keys(careProviderFilter).length > 0) {
-    const careProviders =
-      await CareProvider.find(careProviderFilter).select('_id');
-    filter.roleRef = { $in: careProviders.map(cp => cp._id) };
-  }
-
-  // 3. Build and execute standard user query
-  const userQuery = new QueryBuilder(User.find(filter), query)
-    .search(['name', 'username', 'email'])
-    .filter([
-      'careType',
-      'specialty',
-      'experienceYears',
-      'lat',
-      'lng',
-      'radius',
-    ])
-    .sort()
-    .paginate()
-    .fields();
-
-  const [users, pagination] = await Promise.all([
-    userQuery.modelQuery.populate('roleRef').lean(),
-    userQuery.getPaginationInfo(),
-  ]);
-
-  // 4. Batch lookup wishlist status
-  const providerIds = users.map((u: any) => u._id);
-  let wishlistedProviderIds = new Set<string>();
-
-  if (userId && providerIds.length > 0) {
-    const wishlists = await Wishlist.find({
-      user: userId,
-      careProvider: { $in: providerIds },
-    })
-      .select('careProvider')
-      .lean();
-
-    wishlistedProviderIds = new Set(
-      wishlists.map(w => w.careProvider.toString()),
-    );
-  }
-
-  // 5. Format final response output (Embed distance & isWishlisted)
-  const finalUsers = users.map((user: any) => {
-    let distanceInKm: number | null = null;
-
-    // Safely extract coordinates from GeoJSON [lng, lat]
-    if (lat !== null && lng !== null && user.location?.coordinates) {
-      const [providerLng, providerLat] = user.location.coordinates;
-      distanceInKm = calculateDistance(lat, lng, providerLat, providerLng);
-    }
-
-    return {
-      ...user,
-      distanceInKm,
-      isWishlisted: wishlistedProviderIds.has(user._id.toString()),
-    };
-  });
-
-  return { users: finalUsers, pagination };
-};
 // ------------ get all users ------------
 const getAllUsersFromDB = async (query: Record<string, unknown>) => {
   const userQuery = new QueryBuilder(
     User.find({ isDeleted: false, role: { $ne: UserRole.SuperAdmin } }),
     query,
   )
-    .search(['name', 'username', 'email'])
+    .search(['firstName', 'lastName', 'email'])
     .filter()
     .sort()
     .paginate()
@@ -323,6 +221,5 @@ export const UserService = {
   updateProfileToDB,
   updateStatusToDB,
   deleteSingleUserFromDB,
-  getAllCareProvidersFromDB,
   getAllUsersFromDB,
 };

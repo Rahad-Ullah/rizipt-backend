@@ -50,13 +50,6 @@ router.get(
   UserController.getSingleUser,
 );
 
-// get all providers
-router.get(
-  '/care-providers',
-  auth(UserRole.Merchant),
-  UserController.getAllProviders,
-);
-
 // get all users
 router.get(
   '/all',

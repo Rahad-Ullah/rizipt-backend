@@ -84,19 +84,6 @@ const deleteSingleUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// get all providers
-const getAllProviders = catchAsync(async (req: Request, res: Response) => {
-  const result = await UserService.getAllCareProvidersFromDB(req.user.id as string, req.query);
-
-  sendResponse(res, {
-    success: true,
-    statusCode: StatusCodes.OK,
-    message: 'Providers data retrieved successfully',
-    data: result.users,
-    pagination: result.pagination,
-  });
-});
-
 // get all users
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   const result = await UserService.getAllUsersFromDB(req.query);
@@ -117,6 +104,5 @@ export const UserController = {
   updateProfile,
   updateStatus,
   deleteSingleUser,
-  getAllProviders,
   getAllUsers
 };
