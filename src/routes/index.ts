@@ -20,6 +20,7 @@ import { privacySettingRoutes } from '../app/modules/privacySetting/privacySetti
 import { analyticsRoutes } from '../app/modules/analytics/analytics.route';
 import { merchantRoutes } from '../app/modules/merchant/merchant.route';
 import { couponRoutes } from '../app/modules/coupon/coupon.route';
+import { mediaUploadRoutes } from '../app/modules/mediaUpload/mediaUpload.route';
 const router = express.Router();
 
 const apiRoutes: { path: string; route: any }[] = [
@@ -44,8 +45,8 @@ const apiRoutes: { path: string; route: any }[] = [
     route: couponRoutes,
   },
   {
-    path: '/wishlists',
-    route: wishlistRoutes,
+    path: '/media-uploads',
+    route: mediaUploadRoutes,
   },
   {
     path: '/reviews',
