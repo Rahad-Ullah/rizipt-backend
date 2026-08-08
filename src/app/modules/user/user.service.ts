@@ -16,8 +16,6 @@ import { CareProvider } from '../careProvider/careProvider.model';
 import { ICareProvider } from '../careProvider/careProvider.interface';
 import { Wishlist } from '../wishlist/wishlist.model';
 import { calculateDistance } from '../../../utils/calculateDistance';
-import { PrivacySetting } from '../privacySetting/privacySetting.model';
-import { PrivacyAccessLevel } from '../privacySetting/privacySetting.constants';
 
 const createUserToDB = async (payload: Partial<IUser>) => {
   const session = await mongoose.startSession();

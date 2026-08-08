@@ -1,12 +1,13 @@
 import { z } from 'zod';
-import { UserGender, UserRole, UserStatus } from './user.constant';
+import { UserRole, UserStatus } from './user.constant';
 import { objectId } from '../../../shared/objectIdValidator';
 
 const createUserZodSchema = z.object({
   body: z
     .object({
-      name: z.string({ required_error: 'Name is required' }),
-      role: z.enum([UserRole.CareSeeker, UserRole.CareProvider], {
+      firstName: z.string({ required_error: 'First name is required' }),
+      lastName: z.string({ required_error: 'Last name is required' }),
+      role: z.enum([UserRole.User, UserRole.Merchant], {
         required_error: 'Role is required',
       }),
       email: z
@@ -15,39 +16,12 @@ const createUserZodSchema = z.object({
       password: z
         .string({ required_error: 'Password is required' })
         .min(8, 'Password must be at least 8 characters long'),
-    })
-    .strict(),
-});
-
-const updateUserZodSchema = z.object({
-  body: z
-    .object({
-      name: z.string().optional(),
-      title: z.string().optional(),
-      username: z
-        .string()
-        .trim()
-        .min(3, "Username must be at least 3 characters long")
-        .max(30, "Username cannot exceed 30 characters")
-        .regex(
-          /^[a-zA-Z]/,
-          "Username must start with a letter"
-        )
-        .regex(
-          /^[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*$/,
-          "Username can only contain letters, numbers, and single hyphens, and cannot end with a hyphen"
-        )
-        .transform((val) => val.toLowerCase())
+      phone: z
+        .object({
+          countryCode: z.string().min(1).max(5).optional(),
+          number: z.string().min(10).max(15).optional(),
+        })
         .optional(),
-      gender: z.enum([UserGender.Male, UserGender.Female, UserGender.Other]).optional(),
-      dob: z.coerce.date().optional(),
-      nationality: z.string().optional(),
-      language: z.string().optional(),
-      bio: z.string().optional(),
-      phone: z.object({
-        countryCode: z.string().optional(),
-        number: z.string().optional(),
-      }).optional(),
       address: z.string().optional(),
       location: z
         .object({
@@ -55,7 +29,29 @@ const updateUserZodSchema = z.object({
           coordinates: z.array(z.number()).optional(),
         })
         .optional(),
-      insurance: z.string().optional(),
+    })
+    .strict(),
+});
+
+const updateUserZodSchema = z.object({
+  body: z
+    .object({
+      firstName: z.string().optional(),
+      lastName: z.string().optional(),
+      phone: z
+        .object({
+          countryCode: z.string().min(1).max(5).optional(),
+          number: z.string().min(10).max(15).optional(),
+        })
+        .optional(),
+      address: z.string().optional(),
+      location: z
+        .object({
+          type: z.string().optional(),
+          coordinates: z.array(z.number()).optional(),
+        })
+        .optional(),
+      isNotificationEnabled: z.boolean().optional(),
       image: z.string().optional(),
     })
     .strict(),
