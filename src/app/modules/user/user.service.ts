@@ -9,13 +9,10 @@ import { IUser } from './user.interface';
 import { User } from './user.model';
 import { UserRole, UserStatus } from './user.constant';
 import QueryBuilder from '../../builder/QueryBuilder';
-import mongoose, { FilterQuery } from 'mongoose';
+import mongoose from 'mongoose';
 import { sendNotifications } from '../../../helpers/notificationHelper';
 import { NotificationType } from '../notification/notification.constant';
-import { CareProvider } from '../careProvider/careProvider.model';
-import { ICareProvider } from '../careProvider/careProvider.interface';
-import { Wishlist } from '../wishlist/wishlist.model';
-import { calculateDistance } from '../../../utils/calculateDistance';
+import { Merchant } from '../merchant/merchant.model';
 
 const createUserToDB = async (payload: Partial<IUser>) => {
   const session = await mongoose.startSession();
@@ -39,21 +36,18 @@ const createUserToDB = async (payload: Partial<IUser>) => {
 
     // Create merchant profile
     if (createdUser.role === UserRole.Merchant) {
-      const [careProvider] = await CareProvider.create(
-        [{ user: createdUser._id }],
-        {
-          session,
-        },
-      );
-      if (!careProvider) {
+      const [merchant] = await Merchant.create([{ user: createdUser._id }], {
+        session,
+      });
+      if (!merchant) {
         throw new ApiError(
           StatusCodes.BAD_REQUEST,
-          'Failed to create care provider profile',
+          'Failed to create merchant profile',
         );
       }
       const updatedUser = await User.findByIdAndUpdate(
         { _id: createdUser._id },
-        { $set: { roleRef: careProvider._id } },
+        { $set: { roleRef: merchant._id } },
         { session, new: true },
       );
       if (!updatedUser) {

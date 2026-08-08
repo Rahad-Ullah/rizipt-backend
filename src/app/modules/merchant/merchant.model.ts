@@ -4,7 +4,7 @@ import { KycStatus } from './merchant.constants';
 
 const merchantSchema = new Schema<IMerchant, MerchantModel>(
   {
-    uid: { type: String, required: true, unique: true },
+    uid: { type: String, unique: true, trim: true },
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     businessName: { type: String, default: '' },
     businessType: { type: String, default: '' },
