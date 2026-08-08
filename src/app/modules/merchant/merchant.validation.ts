@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { objectId } from '../../../shared/objectIdValidator';
+import { KycStatus } from './merchant.constants';
 
 // update merchant profile validation
 export const updateMerchantProfileSchema = z.object({
@@ -26,6 +28,19 @@ export const updateMerchantProfileSchema = z.object({
     .strict(),
 });
 
+// update merchant kyc status validation
+export const updateMerchantKycStatusSchema = z.object({
+  params: z.object({
+    id: objectId('Merchant ID'),
+  }),
+  body: z
+    .object({
+      kycStatus: z.enum([KycStatus.Approved, KycStatus.Rejected]),
+    })
+    .strict(),
+});
+
 export const MerchantValidations = {
   updateMerchantProfileSchema,
+  updateMerchantKycStatusSchema,
 };
