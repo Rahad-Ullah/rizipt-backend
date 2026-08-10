@@ -13,6 +13,7 @@ import mongoose from 'mongoose';
 import { sendNotifications } from '../../../helpers/notificationHelper';
 import { NotificationType } from '../notification/notification.constant';
 import { Merchant } from '../merchant/merchant.model';
+import { MediaUploadServices } from '../mediaUpload/mediaUpload.service';
 
 const createUserToDB = async (payload: Partial<IUser>) => {
   const session = await mongoose.startSession();
@@ -130,19 +131,28 @@ const updateProfileToDB = async (
   payload: Partial<IUser>,
 ): Promise<Partial<IUser | null>> => {
   const { id } = user;
-  const existingUser = await User.isExistUserById(id);
+  const existingUser = await User.findById(id).select('_id image');
   if (!existingUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
-  }
-
-  // unlink file here
-  if (payload.image && existingUser.image) {
-    deleteS3File(existingUser.image);
   }
 
   const updateDoc = await User.findOneAndUpdate({ _id: id }, payload, {
     new: true,
   });
+
+  // mark the new file as used
+  if (payload.image) {
+    await MediaUploadServices.markMediaAsUsed(payload.image);
+  }
+
+  // unlink old file from s3
+  if (
+    payload.image &&
+    existingUser.image &&
+    payload.image !== existingUser.image
+  ) {
+    deleteS3File(existingUser.image);
+  }
 
   return updateDoc;
 };
