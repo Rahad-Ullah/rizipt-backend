@@ -9,8 +9,8 @@ import { getMultipleFilesPath } from '../../../shared/getFilePath';
 const uploadMedia = catchAsync(async (req: Request, res: Response) => {
   const images = getMultipleFilesPath(req.files, 'image') || [];
   const videos = getMultipleFilesPath(req.files, 'media') || [];
-  const docs = getMultipleFilesPath(req.files, 'doc') || [];
-  const filePaths = [...images, ...videos, ...docs];
+  const documents = getMultipleFilesPath(req.files, 'doc') || [];
+  const filePaths = [...images, ...videos, ...documents];
 
   await MediaUploadServices.uploadMedia(filePaths);
 
@@ -18,7 +18,7 @@ const uploadMedia = catchAsync(async (req: Request, res: Response) => {
     success: true,
     statusCode: StatusCodes.OK,
     message: 'File uploaded successfully',
-    data: filePaths,
+    data: { images, videos, documents },
   });
 });
 
