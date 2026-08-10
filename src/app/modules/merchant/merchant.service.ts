@@ -4,12 +4,10 @@ import { IMerchant } from './merchant.interface';
 import { Merchant } from './merchant.model';
 import { KycStatus } from './merchant.constants';
 import deleteS3File from '../../../shared/deleteS3File';
+import { MediaUploadServices } from '../mediaUpload/mediaUpload.service';
 
 // update merchant profile
-const updateMerchantProfile = async (
-  userId: string,
-  payload: Partial<IMerchant>,
-) => {
+const updateMerchantProfile = async (userId: string, payload: Partial<IMerchant>) => {
   // check if merchant exists
   const existingMerchant = await Merchant.findOne({ user: userId });
   if (!existingMerchant) {
@@ -27,20 +25,22 @@ const updateMerchantProfile = async (
     { new: true, upsert: true },
   );
 
-  // delete old logo and trade license files from S3 if they exist and are being updated
-  if (
-    payload.logo &&
-    existingMerchant.logo &&
-    payload.logo !== existingMerchant.logo
-  ) {
-    await deleteS3File(existingMerchant.logo);
+  // delete old files and mark new files
+  if (payload.logo) {
+    await MediaUploadServices.markMediaAsUsed(payload.logo);
+    if (existingMerchant.logo && payload.logo !== existingMerchant.logo) {
+      await deleteS3File(existingMerchant.logo);
+    }
   }
-  if (
-    payload.tradeLicense &&
-    existingMerchant.tradeLicense &&
-    payload.tradeLicense !== existingMerchant.tradeLicense
-  ) {
-    await deleteS3File(existingMerchant.tradeLicense);
+  
+  if (payload.tradeLicense) {
+    await MediaUploadServices.markMediaAsUsed(payload.tradeLicense);
+    if (
+      existingMerchant.tradeLicense &&
+      payload.tradeLicense !== existingMerchant.tradeLicense
+    ) {
+      await deleteS3File(existingMerchant.tradeLicense);
+    }
   }
   return updatedMerchant;
 };
