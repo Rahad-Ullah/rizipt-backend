@@ -19,7 +19,7 @@ const createUserZodSchema = z.object({
       phone: z
         .object({
           countryCode: z.string().min(1).max(5).optional(),
-          number: z.string().min(10).max(15).optional(),
+          number: z.string().optional(),
         })
         .optional(),
       address: z.string().optional(),
@@ -41,7 +41,7 @@ const updateUserZodSchema = z.object({
       phone: z
         .object({
           countryCode: z.string().min(1).max(5).optional(),
-          number: z.string().min(10).max(15).optional(),
+          number: z.string().optional(),
         })
         .optional(),
       address: z.string().optional(),
