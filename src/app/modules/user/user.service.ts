@@ -56,7 +56,7 @@ const createUserToDB = async (payload: Partial<IUser>) => {
     }
 
     // Generate OTP
-    const otp = generateOTP(6);
+    const otp = generateOTP(4);
     const values = {
       name: createdUser.firstName,
       otp: otp,

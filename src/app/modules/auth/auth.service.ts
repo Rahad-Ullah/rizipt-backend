@@ -113,7 +113,7 @@ const forgetPasswordToDB = async (email: string) => {
   }
 
   //send mail
-  const otp = generateOTP(6);
+  const otp = generateOTP(4);
   const value = {
     otp,
     email: isExistUser.email,
