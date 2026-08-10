@@ -9,6 +9,7 @@ import { errorLogger, logger } from './shared/logger';
 
 //uncaught exception
 import process from 'process';
+import { initAppQueuesAndWorkers } from './app/queue';
 
 process.on('uncaughtException', error => {
   errorLogger.error('UnhandleException Detected', error);
@@ -26,7 +27,9 @@ async function main() {
     await seedSuperAdmin();
 
     const port =
-      typeof config.port_dev === 'number' ? config.port_dev : Number(config.port_dev);
+      typeof config.port_dev === 'number'
+        ? config.port_dev
+        : Number(config.port_dev);
 
     server = app.listen(port, config.ip_address as string, () => {
       logger.info(colors.yellow(`📶 Application listening on port:${port}`));
@@ -42,6 +45,9 @@ async function main() {
     socketHelper.socket(io);
     //@ts-ignore
     global.io = io;
+
+    // Initialize bullMQ background jobs
+    await initAppQueuesAndWorkers();
   } catch (error) {
     console.error(error);
     errorLogger.error(colors.red('🤢 Failed to connect Database'));

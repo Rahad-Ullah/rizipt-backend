@@ -6,6 +6,7 @@ export default {
   server_name: process.env.SERVER_NAME,
   ip_address: process.env.IP_ADDRESS,
   database_url: process.env.DATABASE_URL,
+  redis_url: process.env.REDIS_URL,
   node_env: process.env.NODE_ENV,
   port: process.env.PORT,
   port_dev: process.env.PORT_DEV,

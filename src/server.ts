@@ -9,6 +9,7 @@ import { errorLogger, logger } from './shared/logger';
 
 //uncaught exception
 import process from 'process';
+import { initAppQueuesAndWorkers } from './app/queue';
 
 process.on('uncaughtException', error => {
   errorLogger.error('UnhandleException Detected', error);
@@ -40,10 +41,13 @@ async function main() {
       },
     });
     socketHelper.socket(io);
-  //@ts-ignore
+    //@ts-ignore
     global.io = io;
+
+    // Initialize bullMQ background jobs
+    await initAppQueuesAndWorkers();
   } catch (error) {
-    console.error(error)
+    console.error(error);
     errorLogger.error(colors.red('🤢 Failed to connect Database'));
   }
 
