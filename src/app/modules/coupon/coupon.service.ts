@@ -4,15 +4,14 @@ import deleteS3File from '../../../shared/deleteS3File';
 import { ICoupon } from './coupon.interface';
 import { Coupon } from './coupon.model';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { MediaUploadServices } from '../mediaUpload/mediaUpload.service';
 
 // -------------- create coupon service ------------------
-export const createCouponService = async (
-  couponData: ICoupon,
-): Promise<ICoupon> => {
+export const createCouponService = async (payload: ICoupon): Promise<ICoupon> => {
   // check if coupon code already exists
   const existingCoupon = await Coupon.exists({
-    code: couponData.code,
-    createdBy: couponData.createdBy,
+    code: payload.code,
+    createdBy: payload.createdBy,
   });
   if (existingCoupon) {
     throw new ApiError(
@@ -22,7 +21,13 @@ export const createCouponService = async (
   }
 
   // create new coupon
-  const result = await Coupon.create(couponData);
+  const result = await Coupon.create(payload);
+
+  // mark new file as used
+  if (payload.image) {
+    await MediaUploadServices.markMediaAsUsed(payload.image);
+  }
+
   return result;
 };
 
@@ -57,14 +62,14 @@ export const updateCouponService = async (
     new: true,
   });
 
-  // delete old coupon image if a new image is provided
-  if (
-    payload.image &&
-    existingCoupon.image &&
-    existingCoupon.image !== payload.image
-  ) {
-    await deleteS3File(existingCoupon.image);
+  // delete old file and mark new file
+  if (payload.image) {
+    await MediaUploadServices.markMediaAsUsed(payload.image);
+    if (existingCoupon.image && existingCoupon.image !== payload.image) {
+      await deleteS3File(existingCoupon.image);
+    }
   }
+
   return updatedCoupon;
 };
 
