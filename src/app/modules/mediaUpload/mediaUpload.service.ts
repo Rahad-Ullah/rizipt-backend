@@ -1,37 +1,58 @@
+import { redis } from '../../../config/redis';
 import deleteS3File from '../../../shared/deleteS3File';
-import { MediaUpload } from './mediaUpload.model';
 
-// -------------- upload media --------------
-const uploadMedia = async (urls: string[]) => {
+const MEDIA_ZSET_KEY = 'unlinked_media_uploads';
+
+// -------------- Upload Media --------------
+const uploadMedia = async (urls: string[]): Promise<string[]> => {
   if (!urls || urls.length === 0) return [];
 
-  const mediaDocs = urls.map(url => ({ url }));
+  const pipeline = redis.pipeline();
+  const currentTimestamp = Date.now();
 
-  const result = await MediaUpload.insertMany(mediaDocs);
-  return result;
-};
-
-// -------------- delete/cleanup media --------------
-const deleteJunkMediaFiles = async (): Promise<void> => {
-  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-
-  const junkMediaFiles = await MediaUpload.find({
-    createdAt: { $lt: twentyFourHoursAgo },
+  urls.forEach(url => {
+    // Add URL to Sorted Set using the timestamp as the score
+    pipeline.zadd(MEDIA_ZSET_KEY, currentTimestamp, url);
   });
 
-  if (!junkMediaFiles.length) return;
+  await pipeline.exec();
+  return urls;
+};
 
-  for (const media of junkMediaFiles) {
+// -------------- Mark as Used --------------
+const markMediaAsUsed = async (urls: string | string[]): Promise<void> => {
+  const urlArray = Array.isArray(urls) ? urls : [urls];
+
+  if (urlArray.length === 0) return;
+
+  await redis.zrem(MEDIA_ZSET_KEY, ...urlArray);
+};
+
+// -------------- Cleanup Junk Media --------------
+const deleteJunkMediaFiles = async (): Promise<void> => {
+  const twentyFourHoursAgo = Date.now() - 6 * 60 * 60 * 1000;
+
+  // Fetch all media uploaded BEFORE 6 hours ago using score range (-inf to 6h ago)
+  const expiredUrls = await redis.zrangebyscore(
+    MEDIA_ZSET_KEY,
+    '-inf',
+    twentyFourHoursAgo,
+  );
+
+  if (!expiredUrls.length) return;
+
+  for (const url of expiredUrls) {
     try {
-      await deleteS3File(media.url);
-      await MediaUpload.findByIdAndDelete(media._id);
+      await deleteS3File(url);
+      await redis.zrem(MEDIA_ZSET_KEY, url); // Remove from Redis set
     } catch (error) {
-      console.error(`[Media Cleanup Error] ID: ${media._id}`, error);
+      console.error(`[Redis Media Cleanup Error] URL: ${url}`, error);
     }
   }
 };
 
 export const MediaUploadServices = {
   uploadMedia,
+  markMediaAsUsed,
   deleteJunkMediaFiles,
 };

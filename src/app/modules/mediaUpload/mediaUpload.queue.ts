@@ -10,7 +10,7 @@ export const mediaUploadQueue = new Queue(MEDIA_CLEANUP_QUEUE, {
 export const scheduleMediaCleanupJob = async () => {
   await mediaUploadQueue.add('delete-junk-media', {}, {
     repeat: {
-      cron: '0 0 * * *', // Daily at midnight
+      cron: '0 */6 * * *', // Every 6 hours
     },
     attempts: 3,
     backoff: {
