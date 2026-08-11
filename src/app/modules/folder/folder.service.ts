@@ -2,8 +2,9 @@ import { StatusCodes } from 'http-status-codes';
 import ApiError from '../../../errors/ApiError';
 import { IFolder } from './folder.interface';
 import { Folder } from './folder.model';
-import { Types } from 'mongoose';
+import { get, Types } from 'mongoose';
 import { toObjectId } from '../../../utils/toObjectId';
+import QueryBuilder from '../../builder/QueryBuilder';
 
 // --------------- create folder service ---------------
 const createFolder = async (payload: IFolder): Promise<IFolder> => {
@@ -183,7 +184,122 @@ const updateFolder = async (
   return updatedFolder;
 };
 
+// --------------- delete folder service ---------------
+const deleteFolder = async (
+  folderId: Types.ObjectId | string,
+  userId: Types.ObjectId | string,
+): Promise<{ deletedCount: number }> => {
+  // 1. Verify target folder exists and belongs to user
+  const targetFolder = await Folder.exists({
+    _id: folderId,
+    createdBy: userId,
+    isDeleted: false,
+  });
+
+  if (!targetFolder) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Folder not found');
+  }
+
+  // 2. Soft-delete target folder AND all nested folders
+  const result = await Folder.updateMany(
+    {
+      $or: [{ _id: folderId }, { ancestors: folderId }],
+      createdBy: userId,
+      isDeleted: false,
+    },
+    {
+      $set: { isDeleted: true },
+    },
+  );
+
+  // Todo: Soft-delete files/items belonging to these folders
+  // await Receipt.updateMany(
+  //   { folder: { $in: [folderId, ...descendants] }, isDeleted: false },
+  //   { $set: { isDeleted: true } }
+  // );
+
+  return { deletedCount: result.modifiedCount };
+};
+
+// ----------------- get folder by id service ----------------
+const getSingleFolderContents = async (
+  folderId: Types.ObjectId | string | null,
+  userId: Types.ObjectId | string,
+) => {
+  let currentFolder: IFolder | null = null;
+  let breadcrumbs: IFolder[] = [];
+
+  if (folderId) {
+    // 1. Fetch current folder details
+    currentFolder = await Folder.findOne({
+      _id: folderId,
+      createdBy: userId,
+      isDeleted: false,
+    });
+
+    if (!currentFolder) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Folder not found');
+    }
+
+    // 2. Resolve breadcrumbs using ancestors array (1 query for all ancestors)
+    if (currentFolder.ancestors.length > 0) {
+      breadcrumbs = await Folder.find({
+        _id: { $in: currentFolder.ancestors },
+        isDeleted: false,
+      })
+        .select('_id name parent')
+        .lean();
+
+      // Ensure breadcrumbs follow the array order of ancestors
+      const ancestorMap = new Map(
+        breadcrumbs.map(doc => [String(doc._id), doc]),
+      );
+      breadcrumbs = currentFolder.ancestors
+        .map(id => ancestorMap.get(String(id)))
+        .filter((doc): doc is IFolder => doc !== undefined);
+    }
+  }
+
+  // 3. Fetch subfolders in the target directory
+  const folders = await Folder.find({
+    parent: folderId || null,
+    createdBy: userId,
+    isDeleted: false,
+  })
+    .sort({ name: 1 })
+    .lean();
+
+  return {
+    currentFolder,
+    breadcrumbs,
+    folders,
+  };
+};
+
+// --------------- get folders by user id service ---------------
+const getFoldersByUserId = async (userId: Types.ObjectId | string) => {
+  const folderQuery = new QueryBuilder(
+    Folder.find({ createdBy: userId, isDeleted: false }),
+    {},
+  )
+    .filter()
+    .search(['name'])
+    .sort()
+    .paginate()
+    .fields();
+
+  const [data, pagination] = await Promise.all([
+    folderQuery.modelQuery,
+    folderQuery.getPaginationInfo(),
+  ]);
+
+  return { data, pagination };
+};
+
 export const FolderServices = {
   createFolder,
   updateFolder,
+  deleteFolder,
+  getSingleFolderContents,
+  getFoldersByUserId,
 };

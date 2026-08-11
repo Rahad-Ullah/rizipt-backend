@@ -23,4 +23,27 @@ router.patch(
   FolderController.updateFolder,
 );
 
+// delete folder
+router.delete(
+  '/:id',
+  auth(UserRole.User, UserRole.Merchant),
+  validateRequest(FolderValidations.deleteFolder),
+  FolderController.deleteFolder,
+);
+
+// get my folders
+router.get(
+  '/my-folders',
+  auth(UserRole.User, UserRole.Merchant),
+  FolderController.getMyFolders,
+);
+
+// get single folder
+router.get(
+  '/:id',
+  auth(UserRole.User, UserRole.Merchant),
+  validateRequest(FolderValidations.getSingleFolder),
+  FolderController.getSingleFolder,
+);
+
 export const folderRoutes = router;

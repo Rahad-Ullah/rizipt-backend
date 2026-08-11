@@ -36,8 +36,18 @@ const deleteFolder = z.object({
     .strict(),
 });
 
+// get single folder validation
+const getSingleFolder = z.object({
+  params: z
+    .object({
+      id: objectId('Folder ID'),
+    })
+    .strict(),
+});
+
 export const FolderValidations = {
   createFolder,
   updateFolder,
   deleteFolder,
+  getSingleFolder,
 };
