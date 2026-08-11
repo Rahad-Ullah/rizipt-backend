@@ -21,6 +21,7 @@ import { analyticsRoutes } from '../app/modules/analytics/analytics.route';
 import { merchantRoutes } from '../app/modules/merchant/merchant.route';
 import { couponRoutes } from '../app/modules/coupon/coupon.route';
 import { mediaUploadRoutes } from '../app/modules/mediaUpload/mediaUpload.route';
+import { customerRoutes } from '../app/modules/customer/customer.route';
 const router = express.Router();
 
 const apiRoutes: { path: string; route: any }[] = [
@@ -39,6 +40,10 @@ const apiRoutes: { path: string; route: any }[] = [
   {
     path: '/auth',
     route: AuthRoutes,
+  },
+  {
+    path: '/customers',
+    route: customerRoutes,
   },
   {
     path: '/coupons',

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { objectId } from '../../../shared/objectIdValidator';
 
 // create customer validation
 const createCustomer = z.object({
@@ -10,6 +11,9 @@ const createCustomer = z.object({
 
 // update customer validation
 const updateCustomer = z.object({
+  params: z.object({
+    id: objectId('Customer ID'),
+  }),
   body: z.object({
     name: z.string().nonempty('Name cannot be empty').optional(),
     email: z.string().email('Invalid email address').optional(),

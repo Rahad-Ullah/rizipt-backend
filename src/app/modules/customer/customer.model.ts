@@ -18,6 +18,11 @@ const customerSchema = new Schema<ICustomer, CustomerModel>({
     unique: true,
     trim: true,
   },
+  merchant: {
+    type: Schema.Types.ObjectId,
+    ref: 'Merchant',
+    required: true,
+  },
 });
 
 export const Customer = model<ICustomer, CustomerModel>(
