@@ -5,6 +5,7 @@ import { Folder } from './folder.model';
 import { get, Types } from 'mongoose';
 import { toObjectId } from '../../../utils/toObjectId';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { Receipt } from '../receipt/receipt.model';
 
 // --------------- create folder service ---------------
 const createFolder = async (payload: IFolder): Promise<IFolder> => {
@@ -190,7 +191,7 @@ const deleteFolder = async (
   userId: Types.ObjectId | string,
 ): Promise<{ deletedCount: number }> => {
   // 1. Verify target folder exists and belongs to user
-  const targetFolder = await Folder.exists({
+  const targetFolder = await Folder.findOne({
     _id: folderId,
     createdBy: userId,
     isDeleted: false,
@@ -200,25 +201,39 @@ const deleteFolder = async (
     throw new ApiError(StatusCodes.NOT_FOUND, 'Folder not found');
   }
 
-  // 2. Soft-delete target folder AND all nested folders
-  const result = await Folder.updateMany(
+  // 2. Fetch all subfolder IDs inside the target folder tree
+  const subfolders = await Folder.find({
+    ancestors: folderId,
+    createdBy: userId,
+    isDeleted: false,
+  }).select('_id');
+
+  const allAffectedFolderIds = [
+    targetFolder._id,
+    ...subfolders.map(f => f._id),
+  ];
+
+  // 3. Soft-delete target folder AND all nested subfolders
+  const folderResult = await Folder.updateMany(
     {
-      $or: [{ _id: folderId }, { ancestors: folderId }],
-      createdBy: userId,
-      isDeleted: false,
+      _id: { $in: allAffectedFolderIds },
     },
     {
       $set: { isDeleted: true },
     },
   );
 
-  // Todo: Soft-delete files/items belonging to these folders
-  // await Receipt.updateMany(
-  //   { folder: { $in: [folderId, ...descendants] }, isDeleted: false },
-  //   { $set: { isDeleted: true } }
-  // );
+  // 4. Soft-delete receipts belonging to the target folder or any subfolder
+  await Receipt.updateMany(
+    {
+      folder: { $in: allAffectedFolderIds },
+      createdBy: userId,
+      isDeleted: false,
+    },
+    { $set: { isDeleted: true } },
+  );
 
-  return { deletedCount: result.modifiedCount };
+  return { deletedCount: folderResult.modifiedCount };
 };
 
 // ----------------- get folder by id service ----------------
