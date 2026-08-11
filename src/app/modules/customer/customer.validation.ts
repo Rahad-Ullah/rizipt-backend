@@ -20,7 +20,15 @@ const updateCustomer = z.object({
   }),
 });
 
+// delete customer validation
+const deleteCustomer = z.object({
+  params: z.object({
+    id: objectId('Customer ID'),
+  }),
+});
+
 export const CustomerValidations = {
   createCustomer,
   updateCustomer,
+  deleteCustomer,
 };
