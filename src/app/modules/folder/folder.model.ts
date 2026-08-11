@@ -33,4 +33,6 @@ const folderSchema = new Schema<IFolder, FolderModel>(
   },
 );
 
+folderSchema.index({ createdBy: 1, parent: 1, isDeleted: 1, name: 1 });
+
 export const Folder = model<IFolder, FolderModel>('Folder', folderSchema);

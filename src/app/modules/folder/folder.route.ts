@@ -15,4 +15,12 @@ router.post(
   FolderController.createFolder,
 );
 
+// update folder
+router.patch(
+  '/:id',
+  auth(UserRole.User, UserRole.Merchant),
+  validateRequest(FolderValidations.updateFolder),
+  FolderController.updateFolder,
+);
+
 export const folderRoutes = router;
