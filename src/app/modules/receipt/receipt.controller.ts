@@ -46,8 +46,49 @@ const deleteReceipt = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get single receipt
+const getSingleReceipt = catchAsync(async (req: Request, res: Response) => {
+  const result = await ReceiptServices.getSingleReceipt(req.params.id);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Receipt retrieved successfully',
+    data: result,
+  });
+});
+
+// get my receipts
+const getMyReceipts = catchAsync(async (req: Request, res: Response) => {
+  const result = await ReceiptServices.getReceiptsByUser(req.user.id, req.query);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Receipt retrieved successfully',
+    data: result.data,
+    pagination: result.pagination,
+  });
+});
+
+// get all receipts
+const getAllReceipts = catchAsync(async (req: Request, res: Response) => {
+  const result = await ReceiptServices.getAllReceipts(req.query);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Receipt retrieved successfully',
+    data: result.data,
+    pagination: result.pagination,
+  });
+});
+
 export const ReceiptController = {
   createReceipt,
   updateReceipt,
   deleteReceipt,
+  getSingleReceipt,
+  getMyReceipts,
+  getAllReceipts,
 };

@@ -6,6 +6,7 @@ import { Receipt } from './receipt.model';
 import { Folder } from '../folder/folder.model';
 import { Merchant } from '../merchant/merchant.model';
 import { ReceiptStatus } from './receipt.constants';
+import QueryBuilder from '../../builder/QueryBuilder';
 
 // --------------- create receipt service ---------------
 const createReceiptService = async (payload: IReceipt): Promise<IReceipt> => {
@@ -81,8 +82,63 @@ const deleteReceiptService = async (id: string) => {
   return result;
 };
 
+// --------------- get receipt by id service ----------------
+const getSingleReceipt = async (id: string): Promise<IReceipt> => {
+  const result = await Receipt.findById(id).populate('customer', 'name email');
+  if (!result) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Receipt not found');
+  }
+  return result;
+};
+
+// ---------------- get receipts by user service ----------------
+const getReceiptsByUser = async (
+  userId: string,
+  query: Record<string, unknown>,
+) => {
+  const receiptQuery = new QueryBuilder(
+    Receipt.find({ createdBy: userId, isDeleted: false }),
+    query,
+  )
+    .filter()
+    .search(['title', 'reference', 'merchant.businessName'])
+    .sort()
+    .paginate()
+    .fields();
+
+  const [data, pagination] = await Promise.all([
+    receiptQuery.modelQuery.populate('customer', 'name email'),
+    receiptQuery.getPaginationInfo(),
+  ]);
+
+  return { data, pagination };
+};
+
+// ---------------- get all receipts service ----------------
+const getAllReceipts = async (query: Record<string, unknown>) => {
+  const receiptQuery = new QueryBuilder(
+    Receipt.find({ isDeleted: false }),
+    query,
+  )
+    .filter()
+    .search(['title', 'reference', 'merchant.businessName'])
+    .sort()
+    .paginate()
+    .fields();
+
+  const [data, pagination] = await Promise.all([
+    receiptQuery.modelQuery.populate('customer', 'name email'),
+    receiptQuery.getPaginationInfo(),
+  ]);
+
+  return { data, pagination };
+};
+
 export const ReceiptServices = {
   createReceiptService,
   updateReceiptService,
   deleteReceiptService,
+  getSingleReceipt,
+  getReceiptsByUser,
+  getAllReceipts,
 };

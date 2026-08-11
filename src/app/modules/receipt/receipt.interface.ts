@@ -10,6 +10,7 @@ export interface ILineItem {
 export interface IReceipt {
   _id?: Types.ObjectId | string;
   uid: string;
+  title: string;
   folder: Types.ObjectId | string;
   reference?: string;
   customer?: string | Types.ObjectId;

@@ -10,6 +10,11 @@ const receiptSchema = new Schema<IReceipt, ReceiptModel>(
       unique: true,
       trim: true,
     },
+    title: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     folder: {
       type: Schema.Types.ObjectId,
       ref: 'Folder',

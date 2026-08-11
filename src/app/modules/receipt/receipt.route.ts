@@ -31,4 +31,26 @@ router.delete(
   ReceiptController.deleteReceipt,
 );
 
+// get single receipt
+router.get(
+  '/single/:id',
+  auth(UserRole.User, UserRole.Merchant, UserRole.Admin, UserRole.SuperAdmin),
+  validateRequest(ReceiptValidations.getSingleReceipt),
+  ReceiptController.getSingleReceipt,
+);
+
+// get my receipts
+router.get(
+  '/my-receipts',
+  auth(UserRole.User, UserRole.Merchant),
+  ReceiptController.getMyReceipts,
+);
+
+// get all receipts
+router.get(
+  '/all',
+  auth(UserRole.Admin, UserRole.SuperAdmin),
+  ReceiptController.getAllReceipts,
+);
+
 export const receiptRoutes = router;
