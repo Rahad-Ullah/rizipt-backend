@@ -23,6 +23,7 @@ import { couponRoutes } from '../app/modules/coupon/coupon.route';
 import { mediaUploadRoutes } from '../app/modules/mediaUpload/mediaUpload.route';
 import { customerRoutes } from '../app/modules/customer/customer.route';
 import { folderRoutes } from '../app/modules/folder/folder.route';
+import { receiptRoutes } from '../app/modules/receipt/receipt.route';
 const router = express.Router();
 
 const apiRoutes: { path: string; route: any }[] = [
@@ -49,6 +50,10 @@ const apiRoutes: { path: string; route: any }[] = [
   {
     path: '/folders',
     route: folderRoutes,
+  },
+  {
+    path: '/receipts',
+    route: receiptRoutes,
   },
   {
     path: '/coupons',

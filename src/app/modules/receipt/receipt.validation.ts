@@ -18,7 +18,6 @@ export const createReceipt = z.object({
       customer: objectId('Customer ID').optional().nullable(),
       merchant: z
         .object({
-          id: objectId('Merchant ID').optional().nullable(),
           businessName: z.string().trim().min(1, 'Business name is required'),
           address: z.string().trim().optional(),
           phone: z.string().trim().optional(),
@@ -50,7 +49,6 @@ export const updateReceipt = z.object({
       customer: objectId('Customer ID').optional().nullable(),
       merchant: z
         .object({
-          id: objectId('Merchant ID').optional().nullable(),
           businessName: z.string().trim().min(1, 'Business name is required'),
           address: z.string().trim().optional(),
           phone: z.string().trim().optional(),

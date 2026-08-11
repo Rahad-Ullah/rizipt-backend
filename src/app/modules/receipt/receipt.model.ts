@@ -1,6 +1,7 @@
 import { Schema, model } from 'mongoose';
 import { IReceipt, ReceiptModel } from './receipt.interface';
 import { ReceiptStatus } from './receipt.constants';
+import { autoIncrementPlugin } from '../../../DB/autoIncrementPlugin';
 
 const receiptSchema = new Schema<IReceipt, ReceiptModel>(
   {
@@ -69,7 +70,7 @@ const receiptSchema = new Schema<IReceipt, ReceiptModel>(
     status: {
       type: String,
       enum: Object.values(ReceiptStatus),
-      required: true,
+      default: ReceiptStatus.Draft,
     },
     createdBy: {
       type: Schema.Types.ObjectId,
@@ -87,3 +88,12 @@ const receiptSchema = new Schema<IReceipt, ReceiptModel>(
 );
 
 export const Receipt = model<IReceipt, ReceiptModel>('Receipt', receiptSchema);
+
+// auto increment uid
+receiptSchema.plugin(autoIncrementPlugin, {
+  incField: 'uid',
+  prefix: 'RCPT',
+  counterId: 'receipt_sequence',
+  padLength: 6,
+});
+
