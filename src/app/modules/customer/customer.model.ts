@@ -23,6 +23,10 @@ const customerSchema = new Schema<ICustomer, CustomerModel>({
     ref: 'Merchant',
     required: true,
   },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 export const Customer = model<ICustomer, CustomerModel>(

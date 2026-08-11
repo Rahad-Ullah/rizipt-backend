@@ -37,7 +37,11 @@ const updateCustomer = async (id: string, payload: Partial<ICustomer>) => {
 
 // ----------------- delete customer -------------------
 const deleteCustomer = async (id: string) => {
-  const result = await Customer.findByIdAndDelete(id);
+  const result = await Customer.findByIdAndUpdate(
+    id,
+    { isDeleted: true },
+    { new: true },
+  );
   if (!result) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Customer not found');
   }
@@ -50,7 +54,7 @@ const getCustomerByMerchantId = async (
   query: Record<string, unknown>,
 ) => {
   const customerQuery = new QueryBuilder(
-    Customer.find({ merchant: merchantId }),
+    Customer.find({ merchant: merchantId, isDeleted: false }),
     query,
   )
     .search(['name', 'email'])
@@ -69,7 +73,10 @@ const getCustomerByMerchantId = async (
 
 // ----------------- get all customers -------------------
 const getAllCustomers = async (query: Record<string, unknown>) => {
-  const customerQuery = new QueryBuilder(Customer.find(), query)
+  const customerQuery = new QueryBuilder(
+    Customer.find({ isDeleted: false }),
+    query,
+  )
     .search(['name', 'email'])
     .filter()
     .sort()

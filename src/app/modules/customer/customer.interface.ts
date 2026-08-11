@@ -6,6 +6,7 @@ export interface ICustomer {
   name: string;
   email: string;
   merchant: Types.ObjectId;
+  isDeleted: boolean;
 }
 
 export type CustomerModel = Model<ICustomer>;
