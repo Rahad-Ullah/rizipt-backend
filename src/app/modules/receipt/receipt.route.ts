@@ -15,4 +15,20 @@ router.post(
   ReceiptController.createReceipt,
 );
 
+// update receipt
+router.patch(
+  '/:id',
+  auth(UserRole.User, UserRole.Merchant),
+  validateRequest(ReceiptValidations.updateReceipt),
+  ReceiptController.updateReceipt,
+);
+
+// delete receipt
+router.delete(
+  '/:id',
+  auth(UserRole.User, UserRole.Merchant),
+  validateRequest(ReceiptValidations.deleteReceipt),
+  ReceiptController.deleteReceipt,
+);
+
 export const receiptRoutes = router;

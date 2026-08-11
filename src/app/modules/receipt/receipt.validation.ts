@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { objectId } from '../../../shared/objectIdValidator';
+import { ReceiptStatus } from './receipt.constants';
 
 const lineItemSchema = z
   .object({
@@ -67,6 +68,7 @@ export const updateReceipt = z.object({
         .optional(),
       taxAmount: z.number().min(0, 'Tax amount cannot be negative').optional(),
       total: z.number().min(0, 'Total cannot be negative').optional(),
+      status: z.nativeEnum(ReceiptStatus).optional(),
     })
     .strict(),
 });
