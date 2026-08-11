@@ -22,6 +22,7 @@ import { merchantRoutes } from '../app/modules/merchant/merchant.route';
 import { couponRoutes } from '../app/modules/coupon/coupon.route';
 import { mediaUploadRoutes } from '../app/modules/mediaUpload/mediaUpload.route';
 import { customerRoutes } from '../app/modules/customer/customer.route';
+import { folderRoutes } from '../app/modules/folder/folder.route';
 const router = express.Router();
 
 const apiRoutes: { path: string; route: any }[] = [
@@ -44,6 +45,10 @@ const apiRoutes: { path: string; route: any }[] = [
   {
     path: '/customers',
     route: customerRoutes,
+  },
+  {
+    path: '/folders',
+    route: folderRoutes,
   },
   {
     path: '/coupons',

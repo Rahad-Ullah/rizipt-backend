@@ -4,7 +4,7 @@ export interface IFolder {
   _id: Types.ObjectId;
   name: string;
   parent?: Types.ObjectId | IFolder | null;
-  ancestors: Types.ObjectId[] | IFolder[];
+  ancestors: Types.ObjectId[];
   createdBy: Types.ObjectId;
   isDeleted: boolean;
   createdAt: Date;

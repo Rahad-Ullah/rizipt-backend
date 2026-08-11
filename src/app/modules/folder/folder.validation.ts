@@ -10,7 +10,6 @@ const createFolder = z.object({
         .min(1, 'Name is required')
         .nonempty("Name can't be empty!"),
       parent: objectId('Parent folder ID').optional(),
-      ancestors: z.array(objectId('Ancestor folder ID')).optional(),
     })
     .strict(),
 });
@@ -24,7 +23,6 @@ const updateFolder = z.object({
         .min(1, 'Name is required')
         .nonempty("Name can't be empty!"),
       parent: objectId('Parent folder ID').optional(),
-      ancestors: z.array(objectId('Ancestor folder ID')).optional(),
     })
     .strict(),
 });
