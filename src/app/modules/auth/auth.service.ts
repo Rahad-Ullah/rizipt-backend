@@ -165,10 +165,31 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
       {
         isEmailVerified: true,
         authentication: { oneTimeCode: null, expireAt: null },
-      }
+      },
     );
+
+    //create access token
+    const accessToken = jwtHelper.createToken(
+      { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email },
+      config.jwt.jwt_secret as Secret,
+      config.jwt.jwt_expire_in as string,
+    );
+
+    // refresh token
+    const refreshToken = jwtHelper.createToken(
+      { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email },
+      config.jwt.jwt_refresh_secret as Secret,
+      config.jwt.jwt_refresh_expire_in as string,
+    );
+
     message = 'Email verify successfully';
-    data = { user: updatedUser }
+    data = {
+      accessToken,
+      refreshToken,
+      role: isExistUser.role,
+      email: isExistUser.email,
+      _id: isExistUser._id,
+    };
   } else {
     await User.findOneAndUpdate(
       { _id: isExistUser._id },
