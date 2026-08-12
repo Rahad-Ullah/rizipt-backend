@@ -9,10 +9,10 @@ const router = express.Router();
 
 // create support ticket
 router.post(
-    '/create',
-    auth(UserRole.CareProvider, UserRole.CareSeeker),
-    validateRequest(SupportValidations.createSupportSchema),
-    SupportController.createSupport
+  '/create',
+  auth(UserRole.User, UserRole.Merchant),
+  validateRequest(SupportValidations.createSupportSchema),
+  SupportController.createSupport,
 );
 
 // update support ticket
@@ -25,18 +25,18 @@ router.patch(
 
 // get single support ticket
 router.get(
-    '/single/:id',
-    auth(UserRole.CareProvider, UserRole.CareSeeker, UserRole.Admin, UserRole.SuperAdmin),
-    validateRequest(SupportValidations.getSingleSupportSchema),
-    SupportController.getSingleById
-)
+  '/single/:id',
+  auth(UserRole.User, UserRole.Merchant, UserRole.Admin, UserRole.SuperAdmin),
+  validateRequest(SupportValidations.getSingleSupportSchema),
+  SupportController.getSingleById,
+);
 
 // get by user id
 router.get(
-    '/my-tickets',
-    auth(UserRole.CareProvider, UserRole.CareSeeker),
-    SupportController.getByUserId
-)
+  '/my-tickets',
+  auth(UserRole.User, UserRole.Merchant),
+  SupportController.getByUserId,
+);
 
 // get all support tickets
 router.get(

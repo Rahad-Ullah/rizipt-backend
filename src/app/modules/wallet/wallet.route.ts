@@ -10,7 +10,7 @@ const router = express.Router();
 // connect payout method
 router.post(
   '/payout-method/connect',
-  auth(UserRole.CareProvider),
+  auth(UserRole.Merchant),
   validateRequest(WalletValidations.connectPayoutMethod),
   WalletController.connectPayoutMethod,
 );
@@ -18,12 +18,12 @@ router.post(
 // payout withdrawal
 router.post(
   '/payout-withdrawal',
-  auth(UserRole.CareProvider),
+  auth(UserRole.Merchant),
   validateRequest(WalletValidations.payoutWithdrawal),
   WalletController.payoutWithdrawal,
 );
 
 // get my wallet
-router.get('/my-wallet', auth(UserRole.CareProvider), WalletController.getMyWallet);
+router.get('/my-wallet', auth(UserRole.Merchant), WalletController.getMyWallet);
 
 export const walletRoutes = router;

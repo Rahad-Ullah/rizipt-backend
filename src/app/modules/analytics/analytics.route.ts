@@ -7,9 +7,9 @@ const router = express.Router();
 
 // get care provider overview
 router.get(
-    '/overview/me',
-    auth(UserRole.CareProvider),
-    AnalyticsController.getProviderOverview
+  '/overview/me',
+  auth(UserRole.Merchant),
+  AnalyticsController.getProviderOverview,
 );
 
 // get admin overview
