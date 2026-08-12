@@ -7,6 +7,7 @@ const customerSchema = new Schema<ICustomer, CustomerModel>(
     uid: {
       type: String,
       unique: true,
+      sparse: true,
       trim: true,
     },
     name: {

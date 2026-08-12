@@ -1,11 +1,13 @@
 import { Schema, model } from 'mongoose';
 import { ICoupon, CouponModel } from './coupon.interface';
 import { CouponStatus } from './coupon.constants';
+import { autoIncrementPlugin } from '../../../DB/autoIncrementPlugin';
 
 const couponSchema = new Schema<ICoupon, CouponModel>({
   uid: {
     type: String,
     unique: true,
+    sparse: true,
     trim: true,
   },
   title: {
@@ -57,3 +59,11 @@ const couponSchema = new Schema<ICoupon, CouponModel>({
 });
 
 export const Coupon = model<ICoupon, CouponModel>('Coupon', couponSchema);
+
+// auto increment uid
+couponSchema.plugin(autoIncrementPlugin, {
+  incField: 'uid',
+  prefix: 'CPN',
+  counterId: 'coupon_sequence',
+  padLength: 6,
+});

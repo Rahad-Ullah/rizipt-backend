@@ -1,10 +1,11 @@
 import { Schema, model } from 'mongoose';
 import { IMerchant, MerchantModel } from './merchant.interface';
 import { KycStatus } from './merchant.constants';
+import { autoIncrementPlugin } from '../../../DB/autoIncrementPlugin';
 
 const merchantSchema = new Schema<IMerchant, MerchantModel>(
   {
-    uid: { type: String, unique: true, trim: true },
+    uid: { type: String, unique: true, sparse: true, trim: true },
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     businessName: { type: String, default: '' },
     businessType: { type: String, default: '' },
@@ -43,3 +44,11 @@ export const Merchant = model<IMerchant, MerchantModel>(
   'Merchant',
   merchantSchema,
 );
+
+// auto increment uid
+merchantSchema.plugin(autoIncrementPlugin, {
+  incField: 'uid',
+  prefix: 'MRC',
+  counterId: 'merchant_sequence',
+  padLength: 6,
+});

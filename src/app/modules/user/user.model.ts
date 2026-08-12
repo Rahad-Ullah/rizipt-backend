@@ -10,6 +10,7 @@ const userSchema = new Schema<IUser, UserModal>(
     uid: {
       type: String,
       unique: true,
+      sparse: true,
       trim: true,
     },
     firstName: {

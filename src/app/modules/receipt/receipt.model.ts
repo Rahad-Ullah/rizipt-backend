@@ -8,6 +8,7 @@ const receiptSchema = new Schema<IReceipt, ReceiptModel>(
     uid: {
       type: String,
       unique: true,
+      sparse: true,
       trim: true,
     },
     title: {
