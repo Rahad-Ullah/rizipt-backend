@@ -77,7 +77,7 @@ merchantSchema.statics.isProfileFulfilled = function (
       merchant.location.coordinates[1] !== 0),
   );
 
-  return hasBusinessDetails && hasContact && hasDocuments && hasValidLocation;
+  return hasBusinessDetails && hasContact && hasDocuments;
 };
 
 // --- 3. Model Compilation (Must be last) ---

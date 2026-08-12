@@ -7,7 +7,9 @@ import QueryBuilder from '../../builder/QueryBuilder';
 import { MediaUploadServices } from '../mediaUpload/mediaUpload.service';
 
 // -------------- create coupon service ------------------
-export const createCouponService = async (payload: ICoupon): Promise<ICoupon> => {
+export const createCouponService = async (
+  payload: ICoupon,
+): Promise<ICoupon> => {
   // check if coupon code already exists
   const existingCoupon = await Coupon.exists({
     code: payload.code,
@@ -132,6 +134,35 @@ export const getCouponsByUserIdService = async (
   return { data, pagination };
 };
 
+// ----------------- get public coupons service ----------------
+export const getPublicCouponsService = async (
+  query: Record<string, unknown>,
+): Promise<{ data: ICoupon[]; pagination: any }> => {
+  const couponQuery = new QueryBuilder(
+    Coupon.find({ isDeleted: false, expiresAt: { $gt: new Date() } }),
+    query,
+  )
+    .search(['title', 'description', 'code'])
+    .filter([])
+    .paginate()
+    .sort()
+    .fields();
+
+  const [data, pagination] = await Promise.all([
+    couponQuery.modelQuery.populate({
+      path: 'createdBy',
+      populate: {
+        path: 'roleRef',
+        select:
+          'businessName businessType logo tradeLicense address kycStatus isKycVerified',
+      },
+    }),
+    couponQuery.getPaginationInfo(),
+  ]);
+
+  return { data, pagination };
+};
+
 // ----------------- get all coupons service ----------------
 export const getAllCouponsService = async (
   query: Record<string, unknown>,
@@ -164,5 +195,6 @@ export const CouponServices = {
   deleteCouponService,
   getSingleCouponService,
   getCouponsByUserIdService,
+  getPublicCouponsService,
   getAllCouponsService,
 };

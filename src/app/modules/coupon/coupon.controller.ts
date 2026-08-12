@@ -86,6 +86,23 @@ export const getMyCoupons = catchAsync(
   },
 );
 
+// get public coupons
+export const getPublicCoupons = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await CouponServices.getPublicCouponsService(
+      req.query as Record<string, unknown>,
+    );
+
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: 'Public coupons retrieved successfully',
+      data: result.data,
+      pagination: result.pagination,
+    });
+  },
+);
+
 // get all coupons
 export const getAllCoupons = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -109,5 +126,6 @@ export const CouponController = {
   deleteCoupon,
   getCoupon,
   getMyCoupons,
+  getPublicCoupons,
   getAllCoupons,
 };

@@ -46,6 +46,13 @@ router.get(
   CouponController.getMyCoupons,
 );
 
+// get public coupons
+router.get(
+  '/public',
+  auth(),
+  CouponController.getPublicCoupons,
+);
+
 // get all coupons
 router.get(
   '/all',
