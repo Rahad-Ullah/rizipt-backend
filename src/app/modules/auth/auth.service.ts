@@ -39,15 +39,6 @@ const loginUserFromDB = async (payload: ILoginData) => {
     );
   }
 
-  //check if user email is verified
-  if (!isExistUser.isEmailVerified) {
-    await forgetPasswordToDB(email);
-    throw new ApiError(
-      StatusCodes.PROXY_AUTHENTICATION_REQUIRED,
-      'Please verify your account, then try to login again',
-    );
-  }
-
   //check user status
   if (isExistUser.status !== UserStatus.Active) {
     throw new ApiError(
@@ -63,6 +54,15 @@ const loginUserFromDB = async (payload: ILoginData) => {
       config.node_env === 'development'
         ? 'Password is incorrect!'
         : 'Invalid email or password',
+    );
+  }
+
+  //check if user email is verified
+  if (!isExistUser.isEmailVerified) {
+    await forgetPasswordToDB(email);
+    throw new ApiError(
+      StatusCodes.PROXY_AUTHENTICATION_REQUIRED,
+      'Please verify your account, then try to login again',
     );
   }
 
@@ -87,7 +87,7 @@ const loginUserFromDB = async (payload: ILoginData) => {
     email: isExistUser.email,
     _id: isExistUser._id,
   };
-};
+};;
 
 //forget password
 const forgetPasswordToDB = async (email: string) => {
@@ -160,7 +160,7 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
   let data;
 
   if (!isExistUser.isEmailVerified) {
-    const updatedUser = await User.findOneAndUpdate(
+    await User.findOneAndUpdate(
       { _id: isExistUser._id },
       {
         isEmailVerified: true,
