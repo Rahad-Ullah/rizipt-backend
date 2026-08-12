@@ -16,7 +16,8 @@ import cryptoToken from '../../../utils/cryptoToken';
 import generateOTP from '../../../utils/generateOTP';
 import { ResetToken } from '../resetToken/resetToken.model';
 import { User } from '../user/user.model';
-import { UserStatus } from '../user/user.constant';
+import { UserRole, UserStatus } from '../user/user.constant';
+import { Merchant } from '../merchant/merchant.model';
 
 //------------------ login service ------------------
 const loginUserFromDB = async (payload: ILoginData) => {
@@ -80,27 +81,42 @@ const loginUserFromDB = async (payload: ILoginData) => {
     config.jwt.jwt_refresh_expire_in as string,
   );
 
+  // attach profile fulfillment status
+  let isMerchantProfileFulfilled = true;
+  if (isExistUser.role === UserRole.Merchant) {
+    const merchant = await Merchant.findOne({ user: isExistUser._id });
+    if (merchant) {
+      isMerchantProfileFulfilled = Merchant.isProfileFulfilled(merchant);
+    }
+  }
+
   return {
     accessToken,
     refreshToken,
     role: isExistUser.role,
     email: isExistUser.email,
     _id: isExistUser._id,
+    isMerchantProfileFulfilled,
   };
-};;
+};
 
 //forget password
 const forgetPasswordToDB = async (email: string) => {
   const isExistUser = await User.isExistUserByEmail(email);
   if (!isExistUser) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, config.node_env === 'development' ? "User doesn't exist!" : "Invalid email");
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      config.node_env === 'development'
+        ? "User doesn't exist!"
+        : 'Invalid email',
+    );
   }
 
   // check if user is deleted
   if (isExistUser.isDeleted) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      'It looks like your account has been deleted or deactivated.'
+      'It looks like your account has been deleted or deactivated.',
     );
   }
 
@@ -108,7 +124,7 @@ const forgetPasswordToDB = async (email: string) => {
   if (isExistUser.status !== UserStatus.Active) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      'It looks like your account has been suspended or deactivated.'
+      'It looks like your account has been suspended or deactivated.',
     );
   }
 
@@ -140,7 +156,7 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
   if (!oneTimeCode) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      'Please give the otp, check your email we send a code'
+      'Please give the otp, check your email we send a code',
     );
   }
 
@@ -152,7 +168,7 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
   if (date > isExistUser.authentication?.expireAt) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      'Otp already expired, Please try again'
+      'Otp already expired, Please try again',
     );
   }
 
@@ -182,6 +198,15 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
       config.jwt.jwt_refresh_expire_in as string,
     );
 
+    // attach profile fulfillment status
+    let isMerchantProfileFulfilled = true;
+    if (isExistUser.role === UserRole.Merchant) {
+      const merchant = await Merchant.findOne({ user: isExistUser._id });
+      if (merchant) {
+        isMerchantProfileFulfilled = Merchant.isProfileFulfilled(merchant);
+      }
+    }
+
     message = 'Email verify successfully';
     data = {
       accessToken,
@@ -189,6 +214,7 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
       role: isExistUser.role,
       email: isExistUser.email,
       _id: isExistUser._id,
+      isMerchantProfileFulfilled,
     };
   } else {
     await User.findOneAndUpdate(
@@ -199,7 +225,7 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
           oneTimeCode: null,
           expireAt: null,
         },
-      }
+      },
     );
 
     //create token ;

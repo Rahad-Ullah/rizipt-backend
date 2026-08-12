@@ -25,4 +25,6 @@ export interface IMerchant {
   updatedAt: Date;
 }
 
-export type MerchantModel = Model<IMerchant>;
+export interface MerchantModel extends Model<IMerchant> {
+  isProfileFulfilled(merchant: Partial<IMerchant>): boolean;
+}

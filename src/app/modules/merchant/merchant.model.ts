@@ -40,15 +40,48 @@ const merchantSchema = new Schema<IMerchant, MerchantModel>(
   },
 );
 
-export const Merchant = model<IMerchant, MerchantModel>(
-  'Merchant',
-  merchantSchema,
-);
-
-// auto increment uid
+// --- 1. Plugins ---
 merchantSchema.plugin(autoIncrementPlugin, {
   incField: 'uid',
   prefix: 'MRC',
   counterId: 'merchant_sequence',
   padLength: 6,
 });
+
+// --- 2. Statics ---
+merchantSchema.statics.isProfileFulfilled = function (
+  merchant: Partial<IMerchant>,
+): boolean {
+  if (!merchant) return false;
+
+  const hasBusinessDetails = Boolean(
+    merchant.businessName?.trim() &&
+    merchant.businessType?.trim() &&
+    merchant.businessDescription?.trim(),
+  );
+
+  const hasContact = Boolean(
+    merchant.phone?.countryCode?.trim() &&
+    merchant.phone?.number?.trim() &&
+    merchant.address?.trim(),
+  );
+
+  const hasDocuments = Boolean(
+    merchant.tradeLicense?.trim() && merchant.logo?.trim(),
+  );
+
+  const hasValidLocation = Boolean(
+    merchant.location?.coordinates &&
+    merchant.location.coordinates.length === 2 &&
+    (merchant.location.coordinates[0] !== 0 ||
+      merchant.location.coordinates[1] !== 0),
+  );
+
+  return hasBusinessDetails && hasContact && hasDocuments && hasValidLocation;
+};
+
+// --- 3. Model Compilation (Must be last) ---
+export const Merchant = model<IMerchant, MerchantModel>(
+  'Merchant',
+  merchantSchema,
+);
