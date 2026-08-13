@@ -3,6 +3,7 @@ import { Customer } from '../customer/customer.model';
 import { Receipt } from '../receipt/receipt.model';
 import { UserRole } from '../user/user.constant';
 import { User } from '../user/user.model';
+import { Coupon } from '../coupon/coupon.model';
 
 // ----------------- get user overview -----------------
 const getUserOverview = async (userId: string) => {
@@ -63,53 +64,89 @@ const getMerchantOverview = async (userId: string) => {
 
 // ---------------- admin dashboard overview -----------------
 const getAdminOverview = async () => {
-  const [totalUsers, totalMerchants] = await Promise.all([
-    User.countDocuments({ role: UserRole.User }),
-    User.countDocuments({ role: UserRole.Merchant }),
+  const [
+    totalUsers,
+    totalMerchants,
+    totalReceipts,
+    totalCoupons,
+    activeCoupons,
+  ] = await Promise.all([
+    User.countDocuments({ role: UserRole.User, isDeleted: false }),
+    User.countDocuments({ role: UserRole.Merchant, isDeleted: false }),
+    Receipt.countDocuments({ isDeleted: false }),
+    Coupon.countDocuments({ isDeleted: false }),
+    Coupon.countDocuments({ isDeleted: false, expiresAt: { $gt: new Date() } }),
   ]);
 
   return {
     totalUsers,
     totalMerchants,
+    totalReceipts,
+    totalCoupons,
+    activeCoupons,
   };
 };
 
 // ---------------- get monthly user growth ----------------
-const getMonthlyUserGrowth = async (query: Record<string, unknown>) => {
-  const year = (query?.year as string) || new Date().getFullYear().toString();
+const getUserGrowth = async (query: Record<string, unknown>) => {
+  const targetYear =
+    parseInt(query?.year as string, 10) || new Date().getFullYear();
 
-  const result = await User.aggregate([
+  const startDate = new Date(`${targetYear}-01-01T00:00:00.000Z`);
+  const endDate = new Date(`${targetYear + 1}-01-01T00:00:00.000Z`);
+
+  const aggregateResult = await User.aggregate<{ _id: number; count: number }>([
     {
       $match: {
         createdAt: {
-          $gte: new Date(`${year}-01-01`),
-          $lt: new Date(`${parseInt(year as string) + 1}-01-01`),
+          $gte: startDate,
+          $lt: endDate,
         },
       },
     },
     {
       $group: {
-        _id: {
-          year: { $year: '$createdAt' },
-          month: { $month: '$createdAt' },
-        },
+        _id: { $month: '$createdAt' }, // Group strictly by month (1-12)
         count: { $sum: 1 },
-      },
-    },
-    {
-      $sort: {
-        '_id.year': 1,
-        '_id.month': 1,
       },
     },
   ]);
 
-  // format the result
-  const formattedResult = result.map(item => ({
-    year: item._id.year,
-    month: item._id.month,
-    count: item.count,
-  }));
+  // Create a fast lookup map: { monthNumber: count }
+  const countsByMonth = aggregateResult.reduce<Record<number, number>>(
+    (acc, item) => {
+      acc[item._id] = item.count;
+      return acc;
+    },
+    {},
+  );
+
+  // Month names for clean reporting
+  const monthNames = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+
+  // Fill in all 12 months (guaranteeing complete data)
+  const formattedResult = Array.from({ length: 12 }, (_, index) => {
+    const monthNumber = index + 1; // 1 to 12
+    return {
+      year: targetYear,
+      month: monthNumber,
+      monthName: monthNames[index],
+      count: countsByMonth[monthNumber] || 0,
+    };
+  });
 
   return formattedResult;
 };
@@ -118,5 +155,5 @@ export const AnalyticsServices = {
   getUserOverview,
   getMerchantOverview,
   getAdminOverview,
-  getMonthlyUserGrowth,
+  getUserGrowth,
 };

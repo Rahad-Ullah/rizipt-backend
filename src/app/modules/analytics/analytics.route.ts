@@ -26,11 +26,11 @@ router.get(
     AnalyticsController.getAdminOverview
 );
 
-// get monthly user growth
+// get user growth
 router.get(
-    '/monthly-users-growth',
-    auth(UserRole.Admin, UserRole.SuperAdmin),
-    AnalyticsController.getMonthlyUserGrowth
+  '/users-growth',
+  auth(UserRole.Admin, UserRole.SuperAdmin),
+  AnalyticsController.getUserGrowth,
 );
 
 export const analyticsRoutes = router;

@@ -40,15 +40,15 @@ const getAdminOverview = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// get monthly user growth
-const getMonthlyUserGrowth = catchAsync(async (req: Request, res: Response) => {
-  const result = await AnalyticsServices.getMonthlyUserGrowth(req.query);
+// get user growth
+const getUserGrowth = catchAsync(async (req: Request, res: Response) => {
+  const result = await AnalyticsServices.getUserGrowth(req.query);
 
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
     data: result,
-    message: 'Monthly user growth fetched successfully'
+    message: 'User growth fetched successfully',
   });
 });
 
@@ -56,5 +56,5 @@ export const AnalyticsController = {
   getUserOverview,
   getMerchantOverview,
   getAdminOverview,
-  getMonthlyUserGrowth,
+  getUserGrowth,
 };
