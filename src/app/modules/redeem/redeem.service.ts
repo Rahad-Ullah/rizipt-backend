@@ -12,17 +12,10 @@ const createRedeem = async (payload: IRedeem): Promise<IRedeem> => {
   session.startTransaction();
 
   try {
-    // 1. Check existing redeem within session
-    const existingRedeem = await Redeem.findOne({
-      coupon: payload.coupon,
-      user: payload.user,
-    }).session(session);
-
-    if (existingRedeem) {
-      throw new ApiError(
-        StatusCodes.CONFLICT,
-        'You already redeemed this coupon',
-      );
+    // 1. Check if coupon is valid
+    const existingCoupon = await Coupon.exists({ _id: payload.coupon });
+    if (!existingCoupon) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Coupon not found');
     }
 
     // 2. Create redeem record (must pass session in array format for Mongoose)
@@ -36,7 +29,7 @@ const createRedeem = async (payload: IRedeem): Promise<IRedeem> => {
     );
 
     if (!updatedCoupon) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Coupon not found');
+      throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to redeem');
     }
 
     // Commit changes

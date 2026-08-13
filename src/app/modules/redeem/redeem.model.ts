@@ -23,6 +23,4 @@ const redeemSchema = new Schema<IRedeem, RedeemModel>(
   { timestamps: true },
 );
 
-redeemSchema.index({ coupon: 1, user: 1 }, { unique: true });
-
 export const Redeem = model<IRedeem, RedeemModel>('Redeem', redeemSchema);
