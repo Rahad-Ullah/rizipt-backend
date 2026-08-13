@@ -93,8 +93,6 @@ const receiptSchema = new Schema<IReceipt, ReceiptModel>(
   },
 );
 
-export const Receipt = model<IReceipt, ReceiptModel>('Receipt', receiptSchema);
-
 // auto increment uid
 receiptSchema.plugin(autoIncrementPlugin, {
   incField: 'uid',
@@ -102,4 +100,6 @@ receiptSchema.plugin(autoIncrementPlugin, {
   counterId: 'receipt_sequence',
   padLength: 6,
 });
+
+export const Receipt = model<IReceipt, ReceiptModel>('Receipt', receiptSchema);
 

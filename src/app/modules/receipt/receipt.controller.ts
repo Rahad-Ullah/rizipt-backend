@@ -6,10 +6,13 @@ import { StatusCodes } from 'http-status-codes';
 
 // create receipt
 const createReceipt = catchAsync(async (req: Request, res: Response) => {
-  const result = await ReceiptServices.createReceiptService({
-    ...req.body,
-    createdBy: req.user.id,
-  });
+  const result = await ReceiptServices.createReceiptService(
+    {
+      ...req.body,
+      createdBy: req.user.id,
+    },
+    req.user,
+  );
 
   sendResponse(res, {
     statusCode: StatusCodes.CREATED,

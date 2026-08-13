@@ -7,12 +7,20 @@ import { Folder } from '../folder/folder.model';
 import { Merchant } from '../merchant/merchant.model';
 import { ReceiptStatus } from './receipt.constants';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { JwtPayload } from 'jsonwebtoken';
+import { UserRole } from '../user/user.constant';
+import { emailHelper } from '../../../helpers/emailHelper';
+import { emailTemplate } from '../../../shared/emailTemplate';
 
 // --------------- create receipt service ---------------
-const createReceiptService = async (payload: IReceipt): Promise<IReceipt> => {
+const createReceiptService = async (
+  payload: IReceipt,
+  user: JwtPayload,
+): Promise<IReceipt> => {
   // validate customer id
+  let customer = null;
   if (payload.customer) {
-    const customer = await Customer.exists({ _id: payload.customer });
+    customer = await Customer.findById(payload.customer).lean();
     if (!customer) {
       throw new ApiError(StatusCodes.CONFLICT, 'Invalid customer id');
     }
@@ -24,19 +32,38 @@ const createReceiptService = async (payload: IReceipt): Promise<IReceipt> => {
       throw new ApiError(StatusCodes.CONFLICT, 'Invalid folder id');
     }
   }
+
   // attach merchant info
-  const merchant = await Merchant.findOne({ user: payload.createdBy });
-  if (merchant) {
-    payload.merchant = {
-      id: merchant._id,
-      businessName: merchant.businessName,
-      address: merchant.address,
-      phone: `${merchant.phone.countryCode} ${merchant.phone.number}`,
-    };
+  if (user.role === UserRole.Merchant) {
+    const merchant = await Merchant.findOne({ user: payload.createdBy });
+    if (merchant) {
+      payload.merchant = {
+        id: merchant._id,
+        businessName: merchant.businessName,
+        address: merchant.address,
+        phone: `${merchant.phone.countryCode} ${merchant.phone.number}`,
+      };
+      payload.status = ReceiptStatus.Sent;
+    }
   }
 
-  const result = await Receipt.create(payload);
-  return result;
+  const receipt = await Receipt.create(payload);
+
+  // send email to the customer
+  if (user.role === UserRole.Merchant && customer?.email && receipt) {
+    const template = emailTemplate.customerInvoice(receipt, customer);
+    emailHelper
+      .sendEmail({
+        to: customer.email,
+        subject: template.subject,
+        html: template.html,
+      })
+      .catch(error =>
+        console.error('Error while sending receipt email: ', error),
+      );
+  }
+
+  return receipt;
 };
 
 // --------------- update receipt service ---------------
@@ -62,10 +89,6 @@ const updateReceiptService = async (id: string, payload: Partial<IReceipt>) => {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Receipt not found');
   }
 
-  // send email to the customer
-  if (payload.status && payload.status === ReceiptStatus.Sent) {
-    // TODO: send email
-  }
   return result;
 };
 

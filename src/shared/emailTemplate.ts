@@ -1,3 +1,5 @@
+import { ICustomer } from '../app/modules/customer/customer.interface';
+import { IReceipt } from '../app/modules/receipt/receipt.interface';
 import config from '../config';
 import {
   ICreateAccount,
@@ -10,25 +12,39 @@ const createAccount = (values: ICreateAccount) => {
     to: values.email,
     subject: 'Verify your account',
     html: `
-      <body
-          style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
-          <div
-              style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-              <img src="${config.logo_url}" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
-              <h2 style="font-size: 24px; margin-bottom: 20px;">
-                Hey! ${values.name}${values.name && ','} 
-                Your ${config.server_name} Account Credentials
-              </h2>
-              <div style="text-align: center;">
-                  <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">Your single use code is:</p>
-                  <span
-                      style="background-color: #F1913D; padding: 10px; text-align: center; border-radius: 8px; color: #fff; font-size: 25px; letter-spacing: 2px; margin: 20px auto;">
-                      ${values.otp}
-                  </span>
-                  <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">This code is valid for 5 minutes.</p>
-              </div>
+      <div style="background-color: #f4f7f9; padding: 40px 16px; font-family: system-ui, -apple-system, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #333333;">
+        <div style="max-width: 520px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 40px 32px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
+          
+          ${config.logo_url ? `<img src="${config.logo_url}" alt="Logo" style="display: block; margin: 0 auto 32px; max-width: 140px; height: auto;" />` : ''}
+          
+          <h2 style="margin: 0 0 12px; font-size: 22px; font-weight: 600; color: #111111; text-align: center; letter-spacing: -0.3px;">
+            Verify Your Account
+          </h2>
+          
+          <p style="margin: 0 0 28px; font-size: 15px; color: #666666; text-align: center; line-height: 1.5;">
+            Use the single-use verification code below to complete setting up your <strong>${config.server_name}</strong> account.
+          </p>
+          
+          <div style="text-align: center; margin: 32px 0;">
+            <div style="display: inline-block; background-color: #f0f8fc; border: 1px dashed #0094DA; border-radius: 10px; padding: 14px 28px;">
+              <span style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 32px; font-weight: 700; letter-spacing: 6px; color: #0094DA;">
+                ${values.otp}
+              </span>
+            </div>
           </div>
-      </body>
+          
+          <p style="margin: 0 0 32px; font-size: 13px; color: #888888; text-align: center;">
+            This code will expire in <strong style="color: #555555;">5 minutes</strong>.
+          </p>
+
+          <hr style="border: none; border-top: 1px solid #eef2f5; margin: 32px 0 24px;" />
+
+          <p style="margin: 0; font-size: 12px; color: #999999; text-align: center; line-height: 1.4;">
+            If you didn't request this code, you can safely ignore this email.
+          </p>
+
+        </div>
+      </div>
     `,
   };
   return data;
@@ -39,26 +55,155 @@ const resetPassword = (values: IResetPassword) => {
     to: values.email,
     subject: 'Reset your password',
     html: `
-      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
-          <div
-              style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-              <img src="${config.logo_url}" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
-              <div style="text-align: center;">
-                  <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">Your single use code is:</p>
-                  <span
-                      style="background-color: #F1913D; padding: 10px; text-align: center; border-radius: 8px; color: #fff; font-size: 25px; letter-spacing: 2px; margin: 20px auto;">
-                      ${values.otp}
-                  </span>
-                  <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">This code is valid for 5 minutes.</p>
-                  <p style="color: #b9b4b4; font-size: 16px; line-height: 1.5; margin-bottom: 20px;text-align:center">
-                    If you didn't request this code, you can safely ignore this email. Someone else might have typed your email address by mistake.
-                  </p>
-              </div>
+      <div style="background-color: #f4f7f9; padding: 40px 16px; font-family: system-ui, -apple-system, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #333333;">
+        <div style="max-width: 520px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 40px 32px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
+          
+          ${config.logo_url ? `<img src="${config.logo_url}" alt="Logo" style="display: block; margin: 0 auto 32px; max-width: 140px; height: auto;" />` : ''}
+          
+          <h2 style="margin: 0 0 12px; font-size: 22px; font-weight: 600; color: #111111; text-align: center; letter-spacing: -0.3px;">
+            Reset Your Password
+          </h2>
+          
+          <p style="margin: 0 0 28px; font-size: 15px; color: #666666; text-align: center; line-height: 1.5;">
+            Use the verification code below to reset the password for your <strong>${config.server_name}</strong> account.
+          </p>
+          
+          <div style="text-align: center; margin: 32px 0;">
+            <div style="display: inline-block; background-color: #f0f8fc; border: 1px dashed #0094DA; border-radius: 10px; padding: 14px 28px;">
+              <span style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 32px; font-weight: 700; letter-spacing: 6px; color: #0094DA;">
+                ${values.otp}
+              </span>
+            </div>
           </div>
-      </body>
+          
+          <p style="margin: 0 0 32px; font-size: 13px; color: #888888; text-align: center;">
+            This code will expire in <strong style="color: #555555;">5 minutes</strong>.
+          </p>
+
+          <hr style="border: none; border-top: 1px solid #eef2f5; margin: 32px 0 24px;" />
+
+          <p style="margin: 0; font-size: 12px; color: #999999; text-align: center; line-height: 1.4;">
+            If you didn't request this code, you can safely ignore this email. Someone else might have typed your email address by mistake.
+          </p>
+
+        </div>
+      </div>
     `,
   };
   return data;
+};
+
+// invoice/receipt
+const customerInvoice = (data: IReceipt, customer: ICustomer) => {
+  const {
+    merchant,
+    lineItems,
+    subtotal,
+    taxPercentage,
+    taxAmount,
+    total,
+    uid,
+    createdAt,
+  } = data;
+
+  // Format dates for a clean presentation
+  const formattedDate = new Date(createdAt as Date).toLocaleDateString(
+    'en-US',
+    {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    },
+  );
+
+  return {
+    to: customer.email,
+    subject: `Payment Receipt from ${merchant.businessName}`,
+    html: `
+      <div style="background-color: #f4f7f9; padding: 40px 16px; font-family: system-ui, -apple-system, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #333333;">
+        <div style="max-width: 560px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 40px 32px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
+          
+          <!-- Header & Reference -->
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+            <tr>
+              <td style="vertical-align: top;">
+                <h1 style="margin: 0; font-size: 20px; font-weight: 700; color: #0094DA;">${merchant.businessName}</h1>
+                <p style="margin: 4px 0 0; font-size: 13px; color: #666666; line-height: 1.4;">
+                  ${merchant.address}<br />
+                  ${merchant.phone}
+                </p>
+              </td>
+              <td style="vertical-align: top; text-align: right;">
+                <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #0094DA; background-color: #f0f8fc; padding: 4px 8px; border-radius: 4px; display: inline-block;">
+                  Receipt
+                </span>
+                <p style="margin: 6px 0 0; font-size: 13px; font-weight: 600; color: #111111;">${uid}</p>
+                <p style="margin: 2px 0 0; font-size: 12px; color: #888888;">${formattedDate}</p>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Greeting -->
+          <p style="margin: 0 0 24px; font-size: 15px; color: #444444; line-height: 1.5;">
+            Hello <strong>${customer.name}</strong>,<br />
+            Thank you for your purchase from us. Below are the details for your purchase.
+          </p>
+
+          <!-- Line Items Table -->
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+            <thead>
+              <tr style="border-bottom: 2px solid #eef2f5; text-align: left;">
+                <th style="padding: 8px 0; font-size: 12px; font-weight: 600; color: #888888; text-transform: uppercase;">Item</th>
+                <th style="padding: 8px 0; font-size: 12px; font-weight: 600; color: #888888; text-transform: uppercase; text-align: center;">Qty</th>
+                <th style="padding: 8px 0; font-size: 12px; font-weight: 600; color: #888888; text-transform: uppercase; text-align: right;">Price</th>
+                <th style="padding: 8px 0; font-size: 12px; font-weight: 600; color: #888888; text-transform: uppercase; text-align: right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${lineItems
+                .map(
+                  item => `
+                <tr style="border-bottom: 1px solid #f4f7f9;">
+                  <td style="padding: 12px 0; font-size: 14px; color: #333333; font-weight: 500;">${item.name}</td>
+                  <td style="padding: 12px 0; font-size: 14px; color: #666666; text-align: center;">${item.quantity}</td>
+                  <td style="padding: 12px 0; font-size: 14px; color: #666666; text-align: right;">$${item.price.toFixed(2)}</td>
+                  <td style="padding: 12px 0; font-size: 14px; color: #333333; font-weight: 600; text-align: right;">$${(item.quantity * item.price).toFixed(2)}</td>
+                </tr>
+              `,
+                )
+                .join('')}
+            </tbody>
+          </table>
+
+          <!-- Totals Breakdown -->
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+            <tr>
+              <td style="width: 60%;"></td>
+              <td style="width: 40%; padding: 4px 0; font-size: 13px; color: #666666;">Subtotal</td>
+              <td style="padding: 4px 0; font-size: 13px; color: #333333; font-weight: 500; text-align: right;">$${subtotal.toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td></td>
+              <td style="padding: 4px 0; font-size: 13px; color: #666666;">Tax (${taxPercentage}%)</td>
+              <td style="padding: 4px 0; font-size: 13px; color: #333333; font-weight: 500; text-align: right;">$${taxAmount.toFixed(2)}</td>
+            </tr>
+            <tr style="border-top: 2px solid #111111;">
+              <td></td>
+              <td style="padding: 12px 0 0; font-size: 15px; font-weight: 700; color: #111111;">Total</td>
+              <td style="padding: 12px 0 0; font-size: 18px; font-weight: 700; color: #0094DA; text-align: right;">$${total.toFixed(2)}</td>
+            </tr>
+          </table>
+
+          <hr style="border: none; border-top: 1px solid #eef2f5; margin: 32px 0 24px;" />
+
+          <p style="margin: 0; font-size: 12px; color: #999999; text-align: center; line-height: 1.4;">
+            If you have any questions regarding this receipt, please contact ${merchant.phone}.
+          </p>
+
+        </div>
+      </div>
+    `,
+  };
 };
 
 // warning for low platform balance
@@ -130,5 +275,6 @@ const lowBalanceWarning = (values: ILowBalanceWarning) => {
 export const emailTemplate = {
   createAccount,
   resetPassword,
+  customerInvoice,
   lowBalanceWarning,
 };
