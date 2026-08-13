@@ -4,6 +4,18 @@ import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 
+// get user overview
+const getUserOverview = catchAsync(async (req: Request, res: Response) => {
+  const result = await AnalyticsServices.getUserOverview(req.user.id as string);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    data: result,
+    message: 'User overview fetched successfully',
+  });
+});
+
 // get merchant overview
 const getMerchantOverview = catchAsync(async (req: Request, res: Response) => {
   const result = await AnalyticsServices.getMerchantOverview(req.user.id as string);
@@ -41,6 +53,7 @@ const getMonthlyUserGrowth = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const AnalyticsController = {
+  getUserOverview,
   getMerchantOverview,
   getAdminOverview,
   getMonthlyUserGrowth,

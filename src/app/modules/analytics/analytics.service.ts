@@ -4,6 +4,32 @@ import { Receipt } from '../receipt/receipt.model';
 import { UserRole } from '../user/user.constant';
 import { User } from '../user/user.model';
 
+// ----------------- get user overview -----------------
+const getUserOverview = async (userId: string) => {
+  const [totalReceipts, totalAmount] = await Promise.all([
+    Receipt.countDocuments({ createdBy: userId, isDeleted: false }),
+    Receipt.aggregate([
+      {
+        $match: {
+          createdBy: new Types.ObjectId(userId),
+          isDeleted: false,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$total' },
+        },
+      },
+    ]),
+  ]);
+
+  return {
+    totalReceipts,
+    totalAmount: totalAmount[0]?.total ?? 0,
+  };
+};
+
 // ----------------- get merchant overview -----------------
 const getMerchantOverview = async (userId: string) => {
   const [totalReceiptsSent, totalAmountResult, totalCustomers] =
@@ -89,6 +115,7 @@ const getMonthlyUserGrowth = async (query: Record<string, unknown>) => {
 };
 
 export const AnalyticsServices = {
+  getUserOverview,
   getMerchantOverview,
   getAdminOverview,
   getMonthlyUserGrowth,

@@ -5,6 +5,13 @@ import { UserRole } from '../user/user.constant';
 
 const router = express.Router();
 
+// get user overview
+router.get(
+    '/overview/user',
+    auth(UserRole.User),
+    AnalyticsController.getUserOverview,
+);
+
 // get merchant overview
 router.get(
   '/overview/merchant',
