@@ -1,5 +1,6 @@
 import { Schema, model } from 'mongoose';
 import { IRedeem, RedeemModel } from './redeem.interface';
+import { RedeemStatus } from './redeem.constants';
 
 const redeemSchema = new Schema<IRedeem, RedeemModel>(
   {
@@ -12,6 +13,11 @@ const redeemSchema = new Schema<IRedeem, RedeemModel>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    status: {
+      type: String,
+      enum: Object.values(RedeemStatus),
+      default: RedeemStatus.Pending,
     },
   },
   { timestamps: true },

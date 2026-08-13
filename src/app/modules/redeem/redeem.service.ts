@@ -71,6 +71,7 @@ const getRedeemByUserId = async (
   }
 
   const redeemQuery = new QueryBuilder(Redeem.find(filter), query)
+    .filter()
     .sort()
     .paginate()
     .fields();
@@ -83,7 +84,47 @@ const getRedeemByUserId = async (
   return { data, pagination };
 };
 
+// -------------- get all redeems --------------
+const getAllRedeems = async (query: Record<string, unknown>) => {
+  const filter = {} as any;
+
+  // pre-filter coupon
+  if (query.searchTerm) {
+    const searchTerm = (query.searchTerm as string).trim();
+    const coupons = await Coupon.find({
+      $or: [
+        { title: { $regex: searchTerm, $options: 'i' } },
+        { code: { $regex: searchTerm, $options: 'i' } },
+      ],
+    });
+    filter.coupon = coupons.map(coupon => coupon._id);
+  }
+
+  const redeemQuery = new QueryBuilder(Redeem.find(), query)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const [data, pagination] = await Promise.all([
+    redeemQuery.modelQuery.populate({
+      path: 'coupon',
+      populate: {
+        path: 'createdBy',
+        populate: {
+          path: 'roleRef',
+          select: 'businessName businessType logo',
+        },
+      },
+    }).lean(),
+    redeemQuery.getPaginationInfo(),
+  ]);
+
+  return { data, pagination };
+};
+
 export const RedeemServices = {
   createRedeem,
   getRedeemByUserId,
+  getAllRedeems,
 };

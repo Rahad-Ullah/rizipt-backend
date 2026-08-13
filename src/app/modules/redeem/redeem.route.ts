@@ -22,4 +22,11 @@ router.get(
   RedeemController.getRedeemByUserId,
 );
 
+// get all redeems
+router.get(
+  '/all',
+  auth(UserRole.Admin, UserRole.SuperAdmin),
+  RedeemController.getAllRedeems,
+);
+
 export const redeemRoutes = router;

@@ -1,1 +1,4 @@
-export const REDEEM_CONSTANT = 'someValue';
+export enum RedeemStatus {
+  Pending = 'pending',
+  Used = 'used',
+}

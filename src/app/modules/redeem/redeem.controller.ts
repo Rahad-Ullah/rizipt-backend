@@ -32,7 +32,21 @@ const getRedeemByUserId = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get all redeems
+const getAllRedeems = catchAsync(async (req: Request, res: Response) => {
+  const result = await RedeemServices.getAllRedeems(req.query);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Redeems retrieved successfully',
+    data: result.data,
+    pagination: result.pagination,
+  });
+});
+
 export const RedeemController = {
   createRedeem,
   getRedeemByUserId,
+  getAllRedeems,
 };
