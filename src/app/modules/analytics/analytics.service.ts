@@ -1,9 +1,38 @@
+import { Types } from 'mongoose';
+import { Customer } from '../customer/customer.model';
+import { Receipt } from '../receipt/receipt.model';
 import { UserRole } from '../user/user.constant';
 import { User } from '../user/user.model';
 
-// ----------------- get care provider overview -----------------
-const getProviderOverview = async (userId: string) => {
-  return {};
+// ----------------- get merchant overview -----------------
+const getMerchantOverview = async (userId: string) => {
+  const [totalReceiptsSent, totalAmountResult, totalCustomers] =
+    await Promise.all([
+      Receipt.countDocuments({ createdBy: userId, isDeleted: false }),
+
+      Receipt.aggregate([
+        {
+          $match: {
+            createdBy: new Types.ObjectId(userId),
+            isDeleted: false,
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: '$total' },
+          },
+        },
+      ]),
+
+      Customer.countDocuments({ merchant: userId }),
+    ]);
+
+  return {
+    totalReceiptsSent,
+    totalAmountSold: totalAmountResult[0]?.total ?? 0,
+    totalCustomers,
+  };
 };
 
 // ---------------- admin dashboard overview -----------------
@@ -60,7 +89,7 @@ const getMonthlyUserGrowth = async (query: Record<string, unknown>) => {
 };
 
 export const AnalyticsServices = {
-  getProviderOverview,
+  getMerchantOverview,
   getAdminOverview,
   getMonthlyUserGrowth,
 };

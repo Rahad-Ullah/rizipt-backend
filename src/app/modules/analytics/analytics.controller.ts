@@ -4,15 +4,15 @@ import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 
-// get care provider overview
-const getProviderOverview = catchAsync(async (req: Request, res: Response) => {
-  const result = await AnalyticsServices.getProviderOverview(req.user.id as string);
+// get merchant overview
+const getMerchantOverview = catchAsync(async (req: Request, res: Response) => {
+  const result = await AnalyticsServices.getMerchantOverview(req.user.id as string);
 
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
     data: result,
-    message: 'Care provider overview fetched successfully'
+    message: 'Merchant overview fetched successfully',
   });
 });
 
@@ -41,7 +41,7 @@ const getMonthlyUserGrowth = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const AnalyticsController = {
-  getProviderOverview,
+  getMerchantOverview,
   getAdminOverview,
-  getMonthlyUserGrowth
+  getMonthlyUserGrowth,
 };
