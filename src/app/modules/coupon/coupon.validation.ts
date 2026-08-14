@@ -16,9 +16,14 @@ const createCouponSchema = z.object({
       startsAt: z
         .string()
         .datetime()
-        .refine(date => new Date(date) > new Date(), {
-          message: 'Start date must be in the future',
-        }),
+        .refine(
+          date => {
+            const today = new Date();
+            today.setUTCHours(0, 0, 0, 0);
+            return new Date(date) >= today;
+          },
+          { message: 'Start date must be in the future' },
+        ),
       expiresAt: z
         .string()
         .datetime()
@@ -59,9 +64,14 @@ const updateCouponSchema = z.object({
       startsAt: z
         .string()
         .datetime()
-        .refine(date => new Date(date) > new Date(), {
-          message: 'Start date must be in the future',
-        })
+        .refine(
+          date => {
+            const today = new Date();
+            today.setUTCHours(0, 0, 0, 0);
+            return new Date(date) >= today;
+          },
+          { message: 'Start date must be in the future' },
+        )
         .optional(),
       expiresAt: z
         .string()

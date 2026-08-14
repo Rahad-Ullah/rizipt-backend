@@ -3,63 +3,68 @@ import { ICoupon, CouponModel } from './coupon.interface';
 import { CouponStatus } from './coupon.constants';
 import { autoIncrementPlugin } from '../../../DB/autoIncrementPlugin';
 
-const couponSchema = new Schema<ICoupon, CouponModel>({
-  uid: {
-    type: String,
-    unique: true,
-    sparse: true,
-    trim: true,
+const couponSchema = new Schema<ICoupon, CouponModel>(
+  {
+    uid: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
+    title: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    code: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    discountPercentage: {
+      type: Number,
+      required: true,
+      min: 0,
+      max: 100,
+    },
+    image: {
+      type: String,
+      required: true,
+    },
+    redeemCount: {
+      type: Number,
+      default: 0,
+    },
+    startsAt: {
+      type: Date,
+      required: true,
+    },
+    expiresAt: {
+      type: Date,
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: Object.values(CouponStatus),
+      default: CouponStatus.Active,
+    },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
-  title: {
-    type: String,
-    required: true,
+  {
+    timestamps: true,
   },
-  description: {
-    type: String,
-    required: true,
-  },
-  code: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  discountPercentage: {
-    type: Number,
-    required: true,
-    min: 0,
-    max: 100,
-  },
-  image: {
-    type: String,
-    required: true,
-  },
-  redeemCount: {
-    type: Number,
-    default: 0,
-  },
-  startsAt: {
-    type: Date,
-    required: true,
-  },
-  expiresAt: {
-    type: Date,
-    required: true,
-  },
-  status: {
-    type: String,
-    enum: Object.values(CouponStatus),
-    default: CouponStatus.Active,
-  },
-  createdBy: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  isDeleted: {
-    type: Boolean,
-    default: false,
-  },
-});
+);
 
 // indexes
 couponSchema.index({ code: 1, createdBy: 1 });
