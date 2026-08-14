@@ -1,8 +1,7 @@
 export enum NotificationType {
+  AccountUpdated = 'account_updated',
   CouponCreated = 'coupon_created',
   PolicyUpdated = 'policy_updated',
-  KycRequest = 'kyc_request',
-  KycReview = 'kyc_review',
   RefundFailed = 'refund_failed',
 }
 

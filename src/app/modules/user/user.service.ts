@@ -173,7 +173,7 @@ const updateStatusToDB = async (
 
   // send notification to user
   sendNotifications({
-    type: NotificationType.AppointmentCreated,
+    type: NotificationType.AccountUpdated,
     receiver: updateDoc?._id,
     title: 'Account Status Updated',
     message: `Your account has been ${payload.status.toLowerCase()}`,
