@@ -5,6 +5,9 @@ import { ICoupon } from './coupon.interface';
 import { Coupon } from './coupon.model';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { MediaUploadServices } from '../mediaUpload/mediaUpload.service';
+import { NotificationQueue } from '../notification/notification.queue';
+import { UserRole } from '../user/user.constant';
+import { NotificationType } from '../notification/notification.constant';
 
 // -------------- create coupon service ------------------
 export const createCouponService = async (
@@ -29,6 +32,14 @@ export const createCouponService = async (
   if (payload.image) {
     await MediaUploadServices.markMediaAsUsed(payload.image);
   }
+
+  // send notification to users
+  await NotificationQueue.broadcastToAllUsers(UserRole.User, {
+    type: NotificationType.CouponCreated,
+    title: 'New Coupon Published',
+    message: 'A new offer coupon has been published.',
+    referenceId: result._id.toString(),
+  });
 
   return result;
 };

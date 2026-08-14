@@ -33,11 +33,6 @@ const customerSchema = new Schema<ICustomer, CustomerModel>(
   { timestamps: true },
 );
 
-export const Customer = model<ICustomer, CustomerModel>(
-  'Customer',
-  customerSchema,
-);
-
 // auto increment uid
 customerSchema.plugin(autoIncrementPlugin, {
   incField: 'uid',
@@ -45,3 +40,8 @@ customerSchema.plugin(autoIncrementPlugin, {
   counterId: 'customer_sequence',
   padLength: 6,
 });
+
+export const Customer = model<ICustomer, CustomerModel>(
+  'Customer',
+  customerSchema,
+);

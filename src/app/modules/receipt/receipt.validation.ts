@@ -24,7 +24,8 @@ export const createReceipt = z.object({
           address: z.string().trim().optional(),
           phone: z.string().trim().optional(),
         })
-        .strict(),
+        .strict()
+        .optional(),
       lineItems: z
         .array(lineItemSchema)
         .min(1, 'At least one line item is required'),
