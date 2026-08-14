@@ -21,7 +21,6 @@ const couponSchema = new Schema<ICoupon, CouponModel>({
   code: {
     type: String,
     required: true,
-    unique: true,
     trim: true,
   },
   discountPercentage: {
@@ -37,6 +36,10 @@ const couponSchema = new Schema<ICoupon, CouponModel>({
   redeemCount: {
     type: Number,
     default: 0,
+  },
+  startsAt: {
+    type: Date,
+    required: true,
   },
   expiresAt: {
     type: Date,
@@ -58,7 +61,8 @@ const couponSchema = new Schema<ICoupon, CouponModel>({
   },
 });
 
-export const Coupon = model<ICoupon, CouponModel>('Coupon', couponSchema);
+// indexes
+couponSchema.index({ code: 1, createdBy: 1 });
 
 // auto increment uid
 couponSchema.plugin(autoIncrementPlugin, {
@@ -67,3 +71,5 @@ couponSchema.plugin(autoIncrementPlugin, {
   counterId: 'coupon_sequence',
   padLength: 6,
 });
+
+export const Coupon = model<ICoupon, CouponModel>('Coupon', couponSchema);

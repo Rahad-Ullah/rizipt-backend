@@ -139,7 +139,11 @@ export const getPublicCouponsService = async (
   query: Record<string, unknown>,
 ): Promise<{ data: ICoupon[]; pagination: any }> => {
   const couponQuery = new QueryBuilder(
-    Coupon.find({ isDeleted: false, expiresAt: { $gt: new Date() } }),
+    Coupon.find({
+      isDeleted: false,
+      startsAt: { $lt: new Date() },
+      expiresAt: { $gt: new Date() },
+    }),
     query,
   )
     .search(['title', 'description', 'code'])

@@ -10,6 +10,7 @@ export interface ICoupon {
   discountPercentage: number;
   image: string;
   redeemCount: number;
+  startsAt: Date;
   expiresAt: Date;
   status: CouponStatus;
   createdBy: Types.ObjectId;
