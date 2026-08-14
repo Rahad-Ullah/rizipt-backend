@@ -7,7 +7,10 @@ import deleteS3File from '../../../shared/deleteS3File';
 import { MediaUploadServices } from '../mediaUpload/mediaUpload.service';
 
 // update merchant profile
-const updateMerchantProfile = async (userId: string, payload: Partial<IMerchant>) => {
+const updateMerchantProfile = async (
+  userId: string,
+  payload: Partial<IMerchant>,
+) => {
   // check if merchant exists
   const existingMerchant = await Merchant.findOne({ user: userId });
   if (!existingMerchant) {
@@ -32,7 +35,7 @@ const updateMerchantProfile = async (userId: string, payload: Partial<IMerchant>
       await deleteS3File(existingMerchant.logo);
     }
   }
-  
+
   if (payload.tradeLicense) {
     await MediaUploadServices.markMediaAsUsed(payload.tradeLicense);
     if (
@@ -68,7 +71,17 @@ const updateMerchantKycStatus = async (
   return updatedMerchant;
 };
 
+// get single merchant
+const getSingleMerchant = async (userId: string) => {
+  const result = await Merchant.findOne({ user: userId });
+  if (!result) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Merchant not found');
+  }
+  return result;
+};
+
 export const MerchantServices = {
   updateMerchantProfile,
   updateMerchantKycStatus,
+  getSingleMerchant,
 };

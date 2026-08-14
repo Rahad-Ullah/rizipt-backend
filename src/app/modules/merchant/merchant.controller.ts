@@ -38,7 +38,20 @@ const updateMerchantKycStatus = catchAsync(
   },
 );
 
+// get my merchant
+const getMyMerchant = catchAsync(async (req: Request, res: Response) => {
+  const result = await MerchantServices.getSingleMerchant(req.user.id);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Merchant retrieved successfully',
+    data: result,
+  });
+});
+
 export const MerchantController = {
   updateMerchantProfile,
   updateMerchantKycStatus,
+  getMyMerchant,
 };

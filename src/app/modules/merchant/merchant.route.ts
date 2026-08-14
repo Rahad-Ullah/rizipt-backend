@@ -23,4 +23,11 @@ router.patch(
   MerchantController.updateMerchantKycStatus,
 );
 
+// get my merchant
+router.get(
+  '/profile',
+  auth(UserRole.Merchant),
+  MerchantController.getMyMerchant,
+);
+
 export const merchantRoutes = router;
