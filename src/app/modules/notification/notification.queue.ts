@@ -14,13 +14,13 @@ const notificationQueue = new Queue(NOTIFICATION_QUEUE, {
  * Dispatch a broadcast notification job
  */
 const broadcastToAllUsers = async (
-  userRole: string,
+  query: Record<string, unknown>,
   payload: Partial<INotification>,
 ) => {
   // Add job to the queue
   return await notificationQueue.add(
     NotificationQueueJob.BroadcastToUsers,
-    { userRole, payload },
+    { query, payload },
     {
       attempts: 3,
       backoff: {

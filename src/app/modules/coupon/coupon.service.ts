@@ -34,12 +34,15 @@ export const createCouponService = async (
   }
 
   // send notification to users
-  await NotificationQueue.broadcastToAllUsers(UserRole.User, {
-    type: NotificationType.CouponCreated,
-    title: 'New Coupon Published',
-    message: 'A new offer coupon has been published.',
-    referenceId: result._id.toString(),
-  });
+  await NotificationQueue.broadcastToAllUsers(
+    { role: UserRole.User },
+    {
+      type: NotificationType.CouponCreated,
+      title: 'New Coupon Published',
+      message: 'A new offer coupon has been published.',
+      referenceId: result._id.toString(),
+    },
+  );
 
   return result;
 };

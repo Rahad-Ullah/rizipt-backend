@@ -19,6 +19,11 @@ const fetchUserBatch = async (
   limit: number,
   query: Record<string, unknown>,
 ) => {
+  // default query
+  query.isDeleted = false;
+  query.status = UserStatus.Active;
+  query.isNotificationEnabled = true;
+
   if (lastId) {
     query._id = { $gt: new Types.ObjectId(lastId) };
   }
@@ -39,9 +44,14 @@ const fetchUserBatch = async (
 export const initNotificationWorker = () => {
   const worker = new Worker(
     NOTIFICATION_QUEUE,
-    async (job: Job<{ userRole: string; payload: Partial<INotification> }>) => {
+    async (
+      job: Job<{
+        query: Record<string, unknown>;
+        payload: Partial<INotification>;
+      }>,
+    ) => {
       const {
-        userRole,
+        query,
         payload: { type, title, message, referenceId },
       } = job.data;
       let cursor: string | null = null;
@@ -49,12 +59,11 @@ export const initNotificationWorker = () => {
 
       do {
         // 1. Fetch users in chunks
-        const { users, nextCursor } = await fetchUserBatch(cursor, BATCH_SIZE, {
-          role: userRole,
-          isDeleted: false,
-          status: UserStatus.Active,
-          isNotificationEnabled: true,
-        });
+        const { users, nextCursor } = await fetchUserBatch(
+          cursor,
+          BATCH_SIZE,
+          query,
+        );
 
         if (!users.length) break;
 
