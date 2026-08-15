@@ -18,7 +18,7 @@ const broadcastToAllUsers = async (
   payload: Partial<INotification>,
 ) => {
   // Add job to the queue
-  return await notificationQueue.add(
+  const job = await notificationQueue.add(
     NotificationQueueJob.BroadcastToUsers,
     { query, payload },
     {
@@ -37,6 +37,8 @@ const broadcastToAllUsers = async (
       },
     },
   );
+  console.log(`[BullMQ] Notification job added: id-${job.id}`);
+  return job;
 };
 
 // Export all functions

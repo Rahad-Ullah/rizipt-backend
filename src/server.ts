@@ -6,17 +6,52 @@ import config from './config';
 import { seedSuperAdmin } from './DB/seedAdmin';
 import { socketHelper } from './helpers/socketHelper';
 import { errorLogger, logger } from './shared/logger';
+import { initAppQueuesAndWorkers } from './app/queue';
+import process from 'process';
 
 //uncaught exception
-import process from 'process';
-import { initAppQueuesAndWorkers } from './app/queue';
-
 process.on('uncaughtException', error => {
   errorLogger.error('UnhandleException Detected', error);
   process.exit(1);
 });
 
 let server: any;
+let queueHandlers: any;
+
+// Centralized graceful shutdown helper
+const handleGracefulShutdown = async (signal: string) => {
+  logger.info(
+    colors.yellow(`\n${signal} received. Starting graceful shutdown...`),
+  );
+
+  try {
+    // 1. Close BullMQ workers (releases Redis locks immediately)
+    if (queueHandlers) {
+      await queueHandlers.closeWorkers();
+    }
+
+    // 2. Close HTTP & Socket server
+    if (server) {
+      await new Promise<void>(resolve => {
+        server.close(() => {
+          logger.info('HTTP & WebSocket server closed.');
+          resolve();
+        });
+      });
+    }
+
+    // 3. Close MongoDB connection
+    await mongoose.connection.close();
+    logger.info('MongoDB connection closed.');
+
+    process.exit(0);
+  } catch (err) {
+    errorLogger.error('Error during graceful shutdown:', err);
+    process.exit(1);
+  }
+};
+
+// Start the server
 async function main() {
   logger.info(colors.yellow('🚀 Server is starting...'));
   try {
@@ -45,7 +80,7 @@ async function main() {
     global.io = io;
 
     // Initialize bullMQ background jobs
-    await initAppQueuesAndWorkers();
+    queueHandlers = await initAppQueuesAndWorkers();
   } catch (error) {
     console.error(error);
     errorLogger.error(colors.red('🤢 Failed to connect Database'));
@@ -66,21 +101,6 @@ async function main() {
 
 main();
 
-// handle SIGTERM
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM received. Closing server...');
-  if (server) {
-    server.close(() => {
-      logger.info('Server closed. Exiting process.');
-      process.exit(0); // Explicitly kill the process after cleanup
-    });
-  } else {
-    process.exit(0);
-  }
-});
-
-// handle SIGINT
-process.on('SIGINT', () => {
-  logger.info('SIGINT received. Exiting...');
-  process.exit(0);
-});
+// Process signal listeners for dev restarts / deployments
+process.on('SIGTERM', () => handleGracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => handleGracefulShutdown('SIGINT'));

@@ -50,6 +50,7 @@ export const initNotificationWorker = () => {
         payload: Partial<INotification>;
       }>,
     ) => {
+      console.info(`[BullMQ] Worker started processing Job ID: ${job.id}`);
       const {
         query,
         payload: { type, title, message, referenceId },
@@ -102,13 +103,17 @@ export const initNotificationWorker = () => {
   // Worker error and completion listeners
   worker.on('completed', job => {
     console.info(
-      `Notification Job ${job.id} completed. Result:`,
+      `[BullMQ] Notification Job ${job.id} completed. Result:`,
       job.returnvalue,
     );
   });
 
   worker.on('failed', (job, err) => {
     console.error(`Notification Job ${job?.id} failed:`, err.message);
+  });
+
+  worker.on('error', err => {
+    console.error('Notification Worker Redis Error:', err);
   });
 
   return worker;

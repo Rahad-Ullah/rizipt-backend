@@ -11,7 +11,7 @@ interface MediaUploadJob extends Job<
   'delete-junk-media'
 > {}
 
-export const initMediaUploadWorker = (): void => {
+export const initMediaUploadWorker = () => {
   const worker = new Worker<MediaUploadJobData, void, 'delete-junk-media'>(
     MEDIA_CLEANUP_QUEUE,
     async (job: MediaUploadJob) => {
@@ -29,4 +29,10 @@ export const initMediaUploadWorker = (): void => {
   worker.on('failed', (job: MediaUploadJob | undefined, err: Error) => {
     console.error(`[BullMQ] Media cleanup job failed: id-${job?.id}`, err);
   });
+
+  worker.on('error', (err: Error) => {
+    console.error('[BullMQ] Media cleanup worker error:', err);
+  });
+
+  return worker;
 };
