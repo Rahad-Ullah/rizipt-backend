@@ -36,6 +36,7 @@ export const createReceipt = z.object({
         .max(100, 'Tax percentage cannot exceed 100'),
       taxAmount: z.number().min(0, 'Tax amount cannot be negative'),
       total: z.number().min(0, 'Total cannot be negative'),
+      status: z.nativeEnum(ReceiptStatus).optional(),
     })
     .strict(),
 });

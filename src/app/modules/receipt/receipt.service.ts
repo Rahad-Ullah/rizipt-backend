@@ -43,14 +43,17 @@ const createReceiptService = async (
         address: merchant.address,
         phone: `${merchant.phone.countryCode} ${merchant.phone.number}`,
       };
-      payload.status = ReceiptStatus.Sent;
     }
   }
 
   const receipt = await Receipt.create(payload);
 
   // send email to the customer
-  if (user.role === UserRole.Merchant && customer?.email && receipt) {
+  if (
+    user.role === UserRole.Merchant &&
+    customer?.email &&
+    receipt.status === ReceiptStatus.Sent
+  ) {
     const template = emailTemplate.customerInvoice(receipt, customer);
     emailHelper
       .sendEmail({
