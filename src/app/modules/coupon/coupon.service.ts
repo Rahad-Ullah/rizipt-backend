@@ -8,6 +8,7 @@ import { MediaUploadServices } from '../mediaUpload/mediaUpload.service';
 import { NotificationQueue } from '../notification/notification.queue';
 import { UserRole } from '../user/user.constant';
 import { NotificationType } from '../notification/notification.constant';
+import { CouponStatus } from './coupon.constants';
 
 // -------------- create coupon service ------------------
 export const createCouponService = async (
@@ -87,6 +88,16 @@ export const updateCouponService = async (
   }
 
   return updatedCoupon;
+};
+
+// ------------ update expired coupons service ----------------
+export const updateExpiredCoupons = async (): Promise<void> => {
+  await Coupon.updateMany(
+    { expiresAt: { $lt: new Date() }, status: CouponStatus.Active },
+    {
+      status: CouponStatus.Expired,
+    },
+  );
 };
 
 // ------------ delete coupon service ----------------
@@ -210,6 +221,7 @@ export const getAllCouponsService = async (
 export const CouponServices = {
   createCouponService,
   updateCouponService,
+  updateExpiredCoupons,
   deleteCouponService,
   getSingleCouponService,
   getCouponsByUserIdService,
