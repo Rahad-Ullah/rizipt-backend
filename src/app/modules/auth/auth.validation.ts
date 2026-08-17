@@ -82,10 +82,22 @@ const createChangePasswordZodSchema = z.object({
     }),
 });
 
+// refresh token
+const refreshTokenZodSchema = z.object({
+  body: z
+    .object({
+      refreshToken: z
+        .string({ required_error: 'Refresh token is required' })
+        .nonempty("Refresh token can't be empty!"),
+    })
+    .strict(),
+});
+
 export const AuthValidation = {
   createVerifyEmailZodSchema,
   createForgetPasswordZodSchema,
   createLoginZodSchema,
   createResetPasswordZodSchema,
   createChangePasswordZodSchema,
+  refreshTokenZodSchema,
 };

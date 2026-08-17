@@ -245,7 +245,7 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
 //forget password
 const resetPasswordToDB = async (
   token: string,
-  payload: IAuthResetPassword
+  payload: IAuthResetPassword,
 ) => {
   const { newPassword, confirmPassword } = payload;
   //isExist token
@@ -256,12 +256,12 @@ const resetPasswordToDB = async (
 
   //user permission check
   const isExistUser = await User.findById(isExistToken.user).select(
-    '+authentication'
+    '+authentication',
   );
   if (!isExistUser?.authentication?.isResetPassword) {
     throw new ApiError(
       StatusCodes.UNAUTHORIZED,
-      "You don't have permission to change the password. Please click again to 'Forgot Password'"
+      "You don't have permission to change the password. Please click again to 'Forgot Password'",
     );
   }
 
@@ -270,7 +270,7 @@ const resetPasswordToDB = async (
   if (!isValid) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      'Token expired, Please click again to the forget password'
+      'Token expired, Please click again to the forget password',
     );
   }
 
@@ -278,13 +278,13 @@ const resetPasswordToDB = async (
   if (newPassword !== confirmPassword) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      "New password and Confirm password doesn't match!"
+      "New password and Confirm password doesn't match!",
     );
   }
 
   const hashPassword = await bcrypt.hash(
     newPassword,
-    Number(config.bcrypt_salt_rounds)
+    Number(config.bcrypt_salt_rounds),
   );
 
   const updateData = {
@@ -301,7 +301,7 @@ const resetPasswordToDB = async (
 
 const changePasswordToDB = async (
   user: JwtPayload,
-  payload: IChangePassword
+  payload: IChangePassword,
 ) => {
   const { currentPassword, newPassword, confirmPassword } = payload;
   const isExistUser = await User.findById(user.id).select('+password');
@@ -321,21 +321,21 @@ const changePasswordToDB = async (
   if (currentPassword === newPassword) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      'Please give different password from current password'
+      'Please give different password from current password',
     );
   }
   //new password and confirm password check
   if (newPassword !== confirmPassword) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      "Password and Confirm password doesn't matched"
+      "Password and Confirm password doesn't matched",
     );
   }
 
   //hash password
   const hashPassword = await bcrypt.hash(
     newPassword,
-    Number(config.bcrypt_salt_rounds)
+    Number(config.bcrypt_salt_rounds),
   );
 
   const updateData = {
@@ -344,10 +344,29 @@ const changePasswordToDB = async (
   await User.findOneAndUpdate({ _id: user.id }, updateData, { new: true });
 };
 
+// refresh token
+const refreshTokenToDB = async (token: string) => {
+  const decoded = jwtHelper.verifyToken(token, config.jwt.jwt_refresh_secret!);
+
+  const isExistUser = await User.findById(decoded.id).select('_id email role');
+  if (!isExistUser) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+  }
+
+  const accessToken = jwtHelper.createToken(
+    { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email },
+    config.jwt.jwt_secret as Secret,
+    config.jwt.jwt_expire_in as string,
+  );
+
+  return { accessToken };
+};
+
 export const AuthService = {
   verifyEmailToDB,
   loginUserFromDB,
   forgetPasswordToDB,
   resetPasswordToDB,
   changePasswordToDB,
+  refreshTokenToDB,
 };
