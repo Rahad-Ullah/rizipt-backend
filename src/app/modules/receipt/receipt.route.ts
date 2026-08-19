@@ -7,6 +7,14 @@ import { ReceiptValidations } from './receipt.validation';
 
 const router = express.Router();
 
+// receipt OCR AI extraction
+router.post(
+  '/ocr-ai-extraction',
+  auth(UserRole.User, UserRole.Merchant),
+  validateRequest(ReceiptValidations.ocrReceiptAiExtraction),
+  ReceiptController.ocrReceiptAiExtraction,
+);
+
 // create receipt
 router.post(
   '/create',

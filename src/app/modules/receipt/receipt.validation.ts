@@ -4,11 +4,68 @@ import { ReceiptStatus } from './receipt.constants';
 
 const lineItemSchema = z
   .object({
-    name: z.string().trim().min(1, 'Item name is required'),
-    quantity: z.number().min(1, 'Quantity must be at least 1'),
-    price: z.number().min(0, 'Price cannot be negative'),
+    name: z
+      .string()
+      .trim()
+      .min(1, 'Item name is required')
+      .describe('Name or description of the purchased item'),
+    quantity: z
+      .number()
+      .min(1, 'Quantity must be greater than 0')
+      .default(1)
+      .describe('Quantity purchased (e.g. 1, 2, 0.5 for weighted items)'),
+    price: z
+      .number()
+      .min(0, 'Price cannot be negative')
+      .describe('Total amount/cost for this line item (not unit price)'),
   })
   .strict();
+
+// ocr receipt ai parse schema
+export const OcrReceiptAiParseSchema = z.object({
+  reference: z
+    .string()
+    .nullable()
+    .optional()
+    .describe(
+      'Receipt/invoice number, order ID, or transaction reference code',
+    ),
+  merchant: z.object({
+    businessName: z.string().describe('Merchant or business name'),
+    address: z.string().nullable().optional().describe('Merchant address'),
+    phone: z.string().nullable().optional().describe('Merchant phone number'),
+  }),
+  lineItems: z.array(lineItemSchema).describe('List of line items on receipt'),
+  subtotal: z
+    .number()
+    .default(0)
+    .describe('Subtotal before taxes/discounts (default to 0 if not found)'),
+  taxPercentage: z
+    .number()
+    .default(0)
+    .describe(
+      'Tax rate or percentage, e.g. 5 for 5% (default to 0 if not found)',
+    ),
+  taxAmount: z
+    .number()
+    .default(0)
+    .describe(
+      'Total tax charged in currency amount (default to 0 if not found)',
+    ),
+  total: z.number().describe('Final total amount charged'),
+});
+
+// TypeScript type representing what the AI returns
+export type IOcrParsedReceipt = z.infer<typeof OcrReceiptAiParseSchema>;
+
+// ocr receipt ai extraction validation
+export const ocrReceiptAiExtraction = z.object({
+  body: z
+    .object({
+      rawOcrText: z.string().trim().nonempty('Raw OCR text is required'),
+    })
+    .strict(),
+});
 
 // create receipt validation
 export const createReceipt = z.object({
@@ -92,6 +149,8 @@ export const getSingleReceipt = z.object({
 });
 
 export const ReceiptValidations = {
+  OcrReceiptAiParseSchema,
+  ocrReceiptAiExtraction,
   createReceipt,
   updateReceipt,
   deleteReceipt,

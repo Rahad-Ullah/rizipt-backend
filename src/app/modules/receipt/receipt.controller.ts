@@ -4,6 +4,21 @@ import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 
+// ocr receipt ai extraction
+const ocrReceiptAiExtraction = catchAsync(
+  async (req: Request, res: Response) => {
+    const { rawOcrText } = req.body;
+    const result = await ReceiptServices.ocrReceiptAiExtraction(rawOcrText);
+
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: 'Receipt parsed successfully',
+      data: result,
+    });
+  },
+);
+
 // create receipt
 const createReceipt = catchAsync(async (req: Request, res: Response) => {
   const result = await ReceiptServices.createReceiptService(
@@ -63,7 +78,10 @@ const getSingleReceipt = catchAsync(async (req: Request, res: Response) => {
 
 // get my receipts
 const getMyReceipts = catchAsync(async (req: Request, res: Response) => {
-  const result = await ReceiptServices.getReceiptsByUser(req.user.id, req.query);
+  const result = await ReceiptServices.getReceiptsByUser(
+    req.user.id,
+    req.query,
+  );
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -88,6 +106,7 @@ const getAllReceipts = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const ReceiptController = {
+  ocrReceiptAiExtraction,
   createReceipt,
   updateReceipt,
   deleteReceipt,

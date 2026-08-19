@@ -11,6 +11,53 @@ import { JwtPayload } from 'jsonwebtoken';
 import { UserRole } from '../user/user.constant';
 import { emailHelper } from '../../../helpers/emailHelper';
 import { emailTemplate } from '../../../shared/emailTemplate';
+import { gemini } from '../../../config/gemini';
+import { IOcrParsedReceipt, ReceiptValidations } from './receipt.validation';
+
+// --------------- ocr receipt ai extraction ---------------
+const ocrReceiptAiExtraction = async (rawOcrText: string) => {
+  const cleanedOcr = rawOcrText.replace(/\n\s*\n/g, '\n').trim();
+
+  const systemInstruction = `
+    You are a high-speed receipt parser. Return ONLY a valid, raw JSON object matching this structure:
+    {
+      "reference": string | null,
+      "merchant": { "businessName": string, "address": string | null, "phone": string | null },
+      "lineItems": [{ "name": string, "quantity": number, "price": number }],
+      "subtotal": number,
+      "taxPercentage": number,
+      "taxAmount": number,
+      "total": number
+    }
+    Do not include markdown backticks (no \`\`\`json). Extract literal values only, do not compute missing math. Return 0 for missing numbers.
+  `;
+
+  const response = await gemini.models.generateContent({
+    model: 'gemini-3.6-flash',
+    contents: `Extract the receipt fields from this OCR text:\n\n${cleanedOcr}`,
+    config: {
+      systemInstruction: systemInstruction,
+      temperature: 0.0,
+      maxOutputTokens: 8192,
+      thinkingConfig: {
+        thinkingBudget: 1,
+      },
+      responseMimeType: 'application/json',
+    },
+  });
+
+  const responseText = response.text;
+  if (!responseText) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      'Gemini returned an empty response.',
+    );
+  }
+
+  // Parse and validate strictly against the Zod schema
+  const parsedData: IOcrParsedReceipt = JSON.parse(responseText);
+  return ReceiptValidations.OcrReceiptAiParseSchema.parse(parsedData);
+};
 
 // --------------- create receipt service ---------------
 const createReceiptService = async (
@@ -161,6 +208,7 @@ const getAllReceipts = async (query: Record<string, unknown>) => {
 };
 
 export const ReceiptServices = {
+  ocrReceiptAiExtraction,
   createReceiptService,
   updateReceiptService,
   deleteReceiptService,
