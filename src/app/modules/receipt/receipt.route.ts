@@ -4,6 +4,7 @@ import auth from '../../middlewares/auth';
 import { UserRole } from '../user/user.constant';
 import validateRequest from '../../middlewares/validateRequest';
 import { ReceiptValidations } from './receipt.validation';
+import { rateLimiter } from '../../middlewares/rateLimit';
 
 const router = express.Router();
 
@@ -12,6 +13,7 @@ router.post(
   '/ocr-ai-extraction',
   auth(UserRole.User, UserRole.Merchant),
   validateRequest(ReceiptValidations.ocrReceiptAiExtraction),
+  rateLimiter({ prefix: 'ocr-ai-extraction', max: 10 }),
   ReceiptController.ocrReceiptAiExtraction,
 );
 
