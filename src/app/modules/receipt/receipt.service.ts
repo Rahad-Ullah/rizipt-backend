@@ -13,6 +13,8 @@ import { emailHelper } from '../../../helpers/emailHelper';
 import { emailTemplate } from '../../../shared/emailTemplate';
 import { gemini } from '../../../config/gemini';
 import { IOcrParsedReceipt, ReceiptValidations } from './receipt.validation';
+import { MediaUploadServices } from '../mediaUpload/mediaUpload.service';
+import deleteS3File from '../../../shared/deleteS3File';
 
 // --------------- ocr receipt ai extraction ---------------
 const ocrReceiptAiExtraction = async (rawOcrText: string) => {
@@ -106,6 +108,11 @@ const createReceiptService = async (
 
   const receipt = await Receipt.create(payload);
 
+  // mark the new file as used
+  if (payload.image) {
+    await MediaUploadServices.markMediaAsUsed(payload.image);
+  }
+
   // send email to the customer
   if (
     user.role === UserRole.Merchant &&
@@ -133,6 +140,14 @@ const updateReceiptService = async (
   payload: Partial<IReceipt>,
   user: JwtPayload,
 ) => {
+  // check if the receipt exists
+  const existingReceipt = await Receipt.findById(id).select(
+    '_id image createdBy',
+  );
+  if (!existingReceipt) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Receipt not found');
+  }
+
   // validate customer id
   if (payload.customer) {
     const customer = await Customer.exists({ _id: payload.customer });
@@ -164,6 +179,20 @@ const updateReceiptService = async (
 
   if (!result) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Receipt not found');
+  }
+
+  // mark the new file as used
+  if (payload.image) {
+    await MediaUploadServices.markMediaAsUsed(payload.image);
+  }
+
+  // unlink old file from s3
+  if (
+    payload.image &&
+    existingReceipt.image &&
+    payload.image !== existingReceipt.image
+  ) {
+    deleteS3File(existingReceipt.image);
   }
 
   return result;

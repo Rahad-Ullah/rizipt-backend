@@ -16,6 +16,11 @@ const receiptSchema = new Schema<IReceipt, ReceiptModel>(
       trim: true,
       default: '',
     },
+    image: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     folder: {
       type: Schema.Types.ObjectId,
       ref: 'Folder',
@@ -102,4 +107,3 @@ receiptSchema.plugin(autoIncrementPlugin, {
 });
 
 export const Receipt = model<IReceipt, ReceiptModel>('Receipt', receiptSchema);
-
