@@ -42,6 +42,7 @@ const updateReceipt = catchAsync(async (req: Request, res: Response) => {
   const result = await ReceiptServices.updateReceiptService(
     req.params.id,
     req.body,
+    req.user,
   );
 
   sendResponse(res, {

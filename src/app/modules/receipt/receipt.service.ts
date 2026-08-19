@@ -128,7 +128,11 @@ const createReceiptService = async (
 };
 
 // --------------- update receipt service ---------------
-const updateReceiptService = async (id: string, payload: Partial<IReceipt>) => {
+const updateReceiptService = async (
+  id: string,
+  payload: Partial<IReceipt>,
+  user: JwtPayload,
+) => {
   // validate customer id
   if (payload.customer) {
     const customer = await Customer.exists({ _id: payload.customer });
@@ -136,12 +140,24 @@ const updateReceiptService = async (id: string, payload: Partial<IReceipt>) => {
       throw new ApiError(StatusCodes.CONFLICT, 'Invalid customer id');
     }
   }
-  // validate folder id
+
+  // validate folder name
   if (payload.folder) {
-    const folder = await Folder.exists({ _id: payload.folder });
-    if (!folder) {
-      throw new ApiError(StatusCodes.CONFLICT, 'Invalid folder id');
-    }
+    const folder = await Folder.findOneAndUpdate(
+      {
+        name: payload.folder,
+        createdBy: user.id,
+      },
+      {
+        name: payload.folder,
+        createdBy: user.id,
+      },
+      {
+        upsert: true,
+        new: true,
+      },
+    );
+    payload.folder = folder._id;
   }
 
   const result = await Receipt.findByIdAndUpdate(id, payload, { new: true });
