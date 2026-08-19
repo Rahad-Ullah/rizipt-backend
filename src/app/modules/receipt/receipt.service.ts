@@ -29,7 +29,7 @@ const ocrReceiptAiExtraction = async (rawOcrText: string) => {
       "taxAmount": number,
       "total": number
     }
-    Do not include markdown backticks (no \`\`\`json). Extract literal values only, do not compute missing math. Return 0 for missing numbers.
+    Do not include markdown backticks (no \`\`\`json). Extract literal values only, do not compute missing math. Count quantity as default 1 for non-countable items. Return 0 for missing numbers.
   `;
 
   const response = await gemini.models.generateContent({
@@ -168,7 +168,9 @@ const deleteReceiptService = async (id: string) => {
 
 // --------------- get receipt by id service ----------------
 const getSingleReceipt = async (id: string): Promise<IReceipt> => {
-  const result = await Receipt.findById(id).populate('customer', 'name email');
+  const result = await Receipt.findById(id)
+    .populate('customer', 'name email')
+    .populate('folder', 'name');
   if (!result) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Receipt not found');
   }
