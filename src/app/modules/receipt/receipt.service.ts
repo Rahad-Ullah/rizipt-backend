@@ -35,15 +35,12 @@ const ocrReceiptAiExtraction = async (rawOcrText: string) => {
   `;
 
   const response = await gemini.models.generateContent({
-    model: 'gemini-3.6-flash',
+    model: 'gemini-3.5-flash-lite',
     contents: `Extract the receipt fields from this OCR text:\n\n${cleanedOcr}`,
     config: {
       systemInstruction: systemInstruction,
       temperature: 0.0,
       maxOutputTokens: 8192,
-      thinkingConfig: {
-        thinkingBudget: 1,
-      },
       responseMimeType: 'application/json',
     },
   });

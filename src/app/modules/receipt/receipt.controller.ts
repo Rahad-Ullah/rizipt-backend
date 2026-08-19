@@ -3,12 +3,36 @@ import { ReceiptServices } from './receipt.service';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { StatusCodes } from 'http-status-codes';
+import crypto from 'crypto';
+import { redis } from '../../../config/redis';
+import ApiError from '../../../errors/ApiError';
 
 // ocr receipt ai extraction
 const ocrReceiptAiExtraction = catchAsync(
   async (req: Request, res: Response) => {
     const { rawOcrText } = req.body;
+    const userId = req.user.id;
+
+    // create lock key to avoid race conditions (multiple requests at the same time)
+    const textHash = crypto
+      .createHash('sha256')
+      .update(rawOcrText.trim())
+      .digest('hex');
+    const lockKey = `lock:ocr_extraction:${userId}:${textHash}`;
+
+    // acquire atomic lock (expire in 30 seconds)
+    const acquired = await redis.set(lockKey, 'IN_PROGRESS', 'EX', 30, 'NX');
+    if (!acquired) {
+      throw new ApiError(
+        StatusCodes.CONFLICT,
+        'Receipt is already being processed. Please wait.',
+      );
+    }
+
     const result = await ReceiptServices.ocrReceiptAiExtraction(rawOcrText);
+
+    // Always release the lock when done
+    await redis.del(lockKey);
 
     sendResponse(res, {
       statusCode: StatusCodes.OK,
