@@ -72,12 +72,23 @@ const createReceiptService = async (
       throw new ApiError(StatusCodes.CONFLICT, 'Invalid customer id');
     }
   }
-  // validate folder id
+  // validate folder name
   if (payload.folder) {
-    const folder = await Folder.exists({ _id: payload.folder });
-    if (!folder) {
-      throw new ApiError(StatusCodes.CONFLICT, 'Invalid folder id');
-    }
+    const folder = await Folder.findOneAndUpdate(
+      {
+        name: payload.folder,
+        createdBy: user.id,
+      },
+      {
+        name: payload.folder,
+        createdBy: user.id,
+      },
+      {
+        upsert: true,
+        new: true,
+      },
+    );
+    payload.folder = folder._id;
   }
 
   // attach merchant info

@@ -72,7 +72,7 @@ export const createReceipt = z.object({
   body: z
     .object({
       title: z.string().trim().optional(),
-      folder: objectId('Folder ID').optional().nullable(),
+      folder: z.string().optional().nullable(),
       reference: z.string().trim().optional(),
       customer: objectId('Customer ID').optional().nullable(),
       merchant: z
