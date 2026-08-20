@@ -255,7 +255,9 @@ const getAllReceipts = async (query: Record<string, unknown>) => {
     .fields();
 
   const [data, pagination] = await Promise.all([
-    receiptQuery.modelQuery.populate('customer', 'name email'),
+    receiptQuery.modelQuery
+      .populate('customer', 'name email')
+      .populate('createdBy', 'firstName lastName email image'),
     receiptQuery.getPaginationInfo(),
   ]);
 
