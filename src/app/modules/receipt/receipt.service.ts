@@ -31,7 +31,7 @@ const ocrReceiptAiExtraction = async (rawOcrText: string) => {
       "taxAmount": number,
       "total": number
     }
-    Do not include markdown backticks (no \`\`\`json). Extract literal values only, do not compute missing math. Count quantity as default 1 for non-countable items. Return 0 for missing numbers.
+    Do not include markdown backticks (no \`\`\`json). Extract literal values only, do not compute any math calculations. Count quantity as default 1 for non-countable items or quantity not found. Always take the total amount for each item as the item price if purchased multiple quantity. Return 0 for missing numbers.
   `;
 
   const response = await gemini.models.generateContent({
