@@ -100,16 +100,20 @@ const getAllRedeems = async (query: Record<string, unknown>) => {
     .fields();
 
   const [data, pagination] = await Promise.all([
-    redeemQuery.modelQuery.populate({
-      path: 'coupon',
-      populate: {
-        path: 'createdBy',
+    redeemQuery.modelQuery
+      .populate({
+        path: 'coupon',
         populate: {
-          path: 'roleRef',
-          select: 'businessName businessType logo',
+          path: 'createdBy',
+          select: 'firstName lastName email role image roleRef',
+          populate: {
+            path: 'roleRef',
+            select: 'businessName businessType logo',
+          },
         },
-      },
-    }).lean(),
+      })
+      .populate('user', 'firstName lastName email role image')
+      .lean(),
     redeemQuery.getPaginationInfo(),
   ]);
 
